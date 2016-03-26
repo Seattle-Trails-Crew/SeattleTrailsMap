@@ -8,4 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="button_layout">
+        <item name="android:minWidth">104dp</item>
+        <item name="android:maxWidth">168dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:paddingTop">8dp</item>
+    </style>
+
 </resources>
