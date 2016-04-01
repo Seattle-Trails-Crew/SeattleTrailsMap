@@ -1,10 +1,8 @@
 package rocks.morrisontech.seattletrailsmap;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -18,87 +16,47 @@ public class OffLeashParks {
     //Connect to server and get data
     public static void main(String[] args) throws Exception {
 
-        //do stuff here
-
-
-    }
-
-    /*
-    Use static block initializer to download data immediately (and only once) when this class is called
-    This reduces the number of times a data connection is opened
-     */
-
-    static {
-        double latitude, longitude;
-        int id, pmaid;
-        String name;
-        long point_x, point_y;
-
-        String socAppToken = "ZSFz0bJfTTnGi8aQxJJLQ9TuB";
+        String socAppToken = "ZSFz0bJfTTnGi8aQxJJLQ9TuB"; //find where to pass this to Socrata for authorization
         String httpsURL = "https://data.seattle.gov/resource/ybmn-w2mc.json";
 
-        /*
-        initiate and connect to the above URL
-        appToken gives us permission to download data from Socrata
-         */
-
-        //find out where to pass app token to socrata, if I even do
-        URL offLeashURL = null;
-        try {
-            offLeashURL = new URL(httpsURL);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        HttpsURLConnection con = null;
-        try {
-            con = (HttpsURLConnection) offLeashURL.openConnection();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        InputStream ins = null;
-        try {
-            ins = con.getInputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        URL offLeashURL = new URL(httpsURL);
+        HttpsURLConnection con = (HttpsURLConnection) offLeashURL.openConnection();
+        InputStream ins = con.getInputStream();
         InputStreamReader isr = new InputStreamReader(ins);
         BufferedReader in = new BufferedReader(isr);
 
-        ArrayList<OffLeashData> parks = new ArrayList<>();
-
         String inputLine;
-        int numEntries = 0; //counter to set number of elements in array
+
+        /*
+        Create ArrayList of off-leash parks with data from Socrata
+        ArrayList allows flexibility of size without reprogramming when the number of objects changes
+         */
+        ArrayList<OffLeashData> parkData = new ArrayList<>();
+
 
         while ((inputLine = in.readLine()) != null) {
 
+            //write each line into an OffLeashData object
             System.out.println(inputLine);
-            //add a new park entry and write relevant data to each object
-            parks.add(latitude, longitude, pmaid, name, point_x, point_y);
-            numEntries += 1;
 
+            //parse data from connection into OffLeashData objects
+            }
 
-        }
-
+        //close data connection once all park objects are instantiated
         in.close();
     }
 
-
-
-
-    //class to store data downloaded from connection - this will be used to overlay points on the map
+    //class used in Array... all relevant park data will be stored in these objects
     public class OffLeashData {
 
+        double latitude, longitude;
+        String parkName;
 
-        //"the_geom":{"type":"Point","coordinates":[-122.39198161916639,47.651552429619265]}}
-
-        public OffLeashData(double lat, double lon, String n, int pm, long px, long py)
+        public OffLeashData(double lat, double lon, String name)
         {
             latitude = lat;
             longitude = lon;
-            name = n;
-            pmaid = pm;
-            point_x = px;
-            point_y = py;
+            parkName = name;
         }
     }
 
@@ -107,4 +65,5 @@ public class OffLeashParks {
         String parkName;
         double latitude, longitude;
     }
+
 }
