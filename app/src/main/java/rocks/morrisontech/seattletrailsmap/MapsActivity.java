@@ -97,7 +97,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 //    }
 
-
+    //TODO: Study AsyncTask - find what gets passed into it and how it works
     private class GetOffLeashData extends AsyncTask<String, Void, JsonReader> {
 
         @Override
@@ -118,6 +118,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             JsonReader reader = null;
 
             return reader;
+
+            //testing a push
         }
     }
 
