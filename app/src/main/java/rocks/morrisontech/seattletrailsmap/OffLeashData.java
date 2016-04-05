@@ -2,8 +2,8 @@ package rocks.morrisontech.seattletrailsmap;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class OffLeashData {
 
     static String jsonString = "";
-    static JSONObject jObj;
+    static JSONArray jsonArray;
 
     public OffLeashData() {
 
@@ -28,9 +28,9 @@ public class OffLeashData {
 
     //String socAppToken = "ZSFz0bJfTTnGi8aQxJJLQ9TuB";
 
-    public JSONObject getJSONFromUrl(String url) throws IOException {
+    public JSONArray getJSONFromUrl() throws IOException {
 
-        url = "https://data.seattle.gov/resource/ybmn-w2mc.json";
+        final String url = "https://data.seattle.gov/resource/ybmn-w2mc.json";
 
         //open connection
         URL offLeashURL = new URL(url);
@@ -58,13 +58,12 @@ public class OffLeashData {
         in.close();
 
         try {
-            jObj = new JSONObject(jsonString); //org.json.JSONException: [json stuff] Value of type org.json.JSONArray cannot be converted to JSONObject
-            //try instantiating array rather than object
+            jsonArray = new JSONArray(jsonString);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        return jObj;
+        return jsonArray;
     }
 
 

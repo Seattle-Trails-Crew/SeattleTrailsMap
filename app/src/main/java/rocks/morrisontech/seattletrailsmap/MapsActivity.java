@@ -30,7 +30,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String LONGITUDE = "longitude";
     private static final String PARK_NAME = "name";
     private static final String PARK_ID = "id";
-    private static String url = "https://data.seattle.gov/resource/ybmn-w2mc.json";
     Button BtnOffLeash;
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
@@ -47,14 +46,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         /*
-        Need to change button listeners to list with checkboxes so that multiple variables can
-        be queried and displayed on the map. Buttons for now to get functionality correct
+        TODO: Create list for various park features (Trails, Off-Leash)
          */
         //Listeners for buttons to instantiate map data
         BtnOffLeash = (Button) findViewById(R.id.offLeashButton);
         BtnOffLeash.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
-                new OffLeashData().execute();
+                new GetOffLeashData().execute();
             }
         });
     }
@@ -87,11 +85,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             // Show rationale and request permission.
         }
-
-
     }
     /*
-    implement satellite view button using this code
+    TODO: implement satellite view button
      */
 //    public void satelliteViewButton(View view) {
 //        int mapType = mMap.getMapType();
@@ -102,22 +98,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //    }
 
 
-    private class OffLeashData extends AsyncTask<String, Void, JsonReader> {
-
+    private class GetOffLeashData extends AsyncTask<String, Void, JsonReader> {
 
         @Override
         protected JsonReader doInBackground(String... params) {
 
-
-            rocks.morrisontech.seattletrailsmap.OffLeashData parseJSON
+            /*
+            the following declaration creates an OffLeashData class object to download JSON file and copy into JSONArray
+             */
+            rocks.morrisontech.seattletrailsmap.OffLeashData parseOffLeashData
                     = new rocks.morrisontech.seattletrailsmap.OffLeashData();
-
             try {
-                parseJSON.getJSONFromUrl(url);
+                parseOffLeashData.getJSONFromUrl();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
+            //TODO: parse JSON array to usable data
             JsonReader reader = null;
 
             return reader;
