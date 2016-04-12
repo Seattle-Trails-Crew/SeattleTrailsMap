@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.JsonReader;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -17,22 +18,26 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.ArrayList;
+
+import javax.net.ssl.HttpsURLConnection;
 
 //main thread
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    //JSON Node Names
-    private static final String LATITUDE = "latitude";
-    private static final String LONGITUDE = "longitude";
-    private static final String PARK_NAME = "name";
-    private static final String PARK_ID = "id";
+
     Button BtnOffLeash;
-    //variable to hold Off-Leash park data
-    JSONArray offLeashArray = new JSONArray();
+
     private GoogleMap mMap;
 
     //instantiate app with Map Fragment
@@ -46,7 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         /*
-        TODO: Create list for various park features (Trails, Off-Leash)
+        TODO: Create list for park features (Trails, Off-Leash)
          */
         //Listeners for buttons to instantiate map data
         BtnOffLeash = (Button) findViewById(R.id.offLeashButton);
@@ -77,7 +82,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(panToSeattle);
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
         /*
-        check to very persmissions for location data
+        check to verify permissions for location data
          */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -98,28 +103,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //    }
 
     //TODO: Study AsyncTask - find what gets passed into it and how it works
-    private class GetOffLeashData extends AsyncTask<String, Void, JsonReader> {
+    private class GetOffLeashData extends AsyncTask<String, Void, String> {
+
+        StringBuilder jString = new StringBuilder();
+        //TODO create onPreExecute() to load a progress bar of some sort
 
         @Override
-        protected JsonReader doInBackground(String... params) {
+        protected String doInBackground(String... url) {
 
-            /*
-            the following declaration creates an OffLeashData class object to download JSON file and copy into JSONArray
-             */
-            rocks.morrisontech.seattletrailsmap.OffLeashData parseOffLeashData
-                    = new rocks.morrisontech.seattletrailsmap.OffLeashData();
             try {
-                parseOffLeashData.getJSONFromUrl();
+                //open connection
+                URL offLeashURL = new URL("https://data.seattle.gov/resource/ybmn-w2mc.json");
+                HttpsURLConnection con = (HttpsURLConnection) offLeashURL.openConnection();
+                InputStream ins = con.getInputStream();
+                InputStreamReader isr = new InputStreamReader(ins);
+                BufferedReader in = new BufferedReader(isr);
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    jString.append(inputLine);
+                }
+
+                //display JSON string in logcat for verification that download is successful
+                Log.i("OFD", jString.toString());
+
+                //close connection
+                in.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            return jString.toString();
+        }
 
-            //TODO: parse JSON array to usable data
-            JsonReader reader = null;
+        protected void onPostExecute(String dataString) {
+            Gson gson = new Gson();
+            OffLeashData[] ofd = gson.fromJson(dataString, OffLeashData[].class);
+            for(OffLeashData park : ofd) {
+                LatLng mark = new LatLng(park.getLatitude(), park.getLongitude());
 
-            return reader;
-
-            //testing a push
+                mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
+            }
         }
     }
 
