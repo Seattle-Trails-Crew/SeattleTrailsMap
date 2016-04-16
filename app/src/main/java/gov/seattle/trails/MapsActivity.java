@@ -1,9 +1,13 @@
-package rocks.morrisontech.seattletrailsmap;
+package gov.seattle.trails;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.JsonReader;
@@ -34,6 +38,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
     private GoogleMap mMap;
+
+    private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
 
     //instantiate app with Map Fragment
     @Override
@@ -76,16 +82,100 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         CameraUpdate panToSeattle = CameraUpdateFactory.newLatLng(seattle);
         mMap.moveCamera(panToSeattle);
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
-        /*
-        check to very persmissions for location data
-         */
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+
+        askForLocationPermissionIfNeeded();
+    }
+
+    /*
+     check to very persmissions for location data
+    */
+    public void askForLocationPermissionIfNeeded(){
+
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (result != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_REQUEST_LOCATION_SERVICE);
+
+                // PERMISSION_REQUEST_LOCATION_SERVICE is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
+        else{
+            //Permission already enabled
             mMap.setMyLocationEnabled(true);
-        } else {
-            // Show rationale and request permission.
+            askUserToEnableLocationIfNeeded();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_LOCATION_SERVICE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // location task you need to do.
+                    mMap.setMyLocationEnabled(true);
+                    askUserToEnableLocationIfNeeded();
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    public void askUserToEnableLocationIfNeeded(){
+        if (!TheApplication.isLocationServiceEnabled(this)) {
+            // Ask user if they would like to go and enabled settings
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+                            takeUserToLocationSettings();
+                            break;
+
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+
+                            break;
+                    }
+                }
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Would you like to enabled location services?").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
+        }
+    }
+
+    public void takeUserToLocationSettings(){
+        Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(gpsOptionsIntent);
+    }
+
     /*
     TODO: implement satellite view button
      */
@@ -106,8 +196,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             /*
             the following declaration creates an OffLeashData class object to download JSON file and copy into JSONArray
              */
-            rocks.morrisontech.seattletrailsmap.OffLeashData parseOffLeashData
-                    = new rocks.morrisontech.seattletrailsmap.OffLeashData();
+            gov.seattle.trails.OffLeashData parseOffLeashData
+                    = new gov.seattle.trails.OffLeashData();
             try {
                 parseOffLeashData.getJSONFromUrl();
             } catch (IOException e) {

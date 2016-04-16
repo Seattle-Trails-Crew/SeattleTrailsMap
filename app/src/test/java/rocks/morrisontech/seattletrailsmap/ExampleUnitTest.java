@@ -1,4 +1,4 @@
-package rocks.morrisontech.seattletrailsmap;
+package gov.seattle.trails;
 
 import org.junit.Test;
 
