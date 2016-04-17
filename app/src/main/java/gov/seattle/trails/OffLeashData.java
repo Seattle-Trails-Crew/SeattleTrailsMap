@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -16,17 +17,19 @@ import javax.net.ssl.HttpsURLConnection;
 /**
  * Created by Quinn on 4/3/16.
  */
-public class OffLeashData {
-
-    static String jsonString = "";
-    static JSONArray jsonArray;
+public class OffLeashData implements Serializable {
 
     public OffLeashData() {
 
 
     }
 
+
+/*
     //String socAppToken = "ZSFz0bJfTTnGi8aQxJJLQ9TuB";
+
+    static String jsonString = "";
+    static JSONArray jsonArray;
 
     public JSONArray getJSONFromUrl() throws IOException {
 
@@ -66,7 +69,7 @@ public class OffLeashData {
         return jsonArray;
     }
 
-
+*/
 }
 
 

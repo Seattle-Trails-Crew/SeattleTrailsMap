@@ -9,6 +9,7 @@ import android.location.LocationManager;
  */
 public class TheApplication extends Application {
 
+    public static String ServiceUrl = "https://data.seattle.gov/resource/vwtx-gvpm.json?$limit=999999999&$$app_token=o9zqUXd72sDpc0BWNR45Fc1TH";
 
     public static boolean isLocationServiceEnabled(Context context){
         LocationManager lm = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
