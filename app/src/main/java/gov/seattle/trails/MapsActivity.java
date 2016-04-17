@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -36,7 +38,7 @@ import javax.net.ssl.HttpsURLConnection;
 import gov.seattle.trails.entity.TrailEntity;
 
 //main thread
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     //JSON Node Names
     private static final String LATITUDE = "latitude";
@@ -50,6 +52,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
 
+    Toolbar toolbar;
+
     //instantiate app with Map Fragment
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +63,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        setupToolbar();
 
         /*
         TODO: Create list for various park features (Trails, Off-Leash)
@@ -70,6 +76,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new GetTrailData().execute();
             }
         });
+    }
+
+    public void setupToolbar() {
+        this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
+        toolbar.inflateMenu(R.menu.toolbar_menu);
     }
 
     /**
