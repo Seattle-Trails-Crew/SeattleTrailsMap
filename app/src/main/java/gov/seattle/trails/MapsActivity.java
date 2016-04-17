@@ -13,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -80,8 +82,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
+        setSupportActionBar(this.toolbar);
+
         toolbar.inflateMenu(R.menu.toolbar_menu);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+
+        return true;
+    }
+
 
     /**
      * Manipulates the map once available.
