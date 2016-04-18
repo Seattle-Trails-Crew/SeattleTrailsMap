@@ -32,6 +32,7 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/satellite_fab"
+        android:src="@android:drawable/btn_radio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -42,6 +43,7 @@
 
     <android.support.design.widget.FloatingActionButton
     android:id="@+id/navigation_fab"
+    android:src="@android:drawable/btn_star"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_alignParentRight="true"
