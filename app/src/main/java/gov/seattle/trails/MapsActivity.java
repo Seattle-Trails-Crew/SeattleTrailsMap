@@ -1,7 +1,10 @@
 package gov.seattle.trails;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.AlertDialog;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.SearchView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -83,16 +87,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
         setSupportActionBar(this.toolbar);
-
         toolbar.inflateMenu(R.menu.toolbar_menu);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.options_menu, menu);
 
-        return true;
+        MenuInflater inflater = getMenuInflater();
+        //inflater.inflate(R.menu.options_menu, menu);
+        inflater.inflate(R.menu.toolbar_menu, menu);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setIconifiedByDefault(false);
+
+        SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener()
+        {
+            @Override
+            public boolean onQueryTextChange(String newText)
+            {
+                System.out.println("on text chnge text: " + newText);
+                return true;
+            }
+            @Override
+            public boolean onQueryTextSubmit(String query)
+            {
+                System.out.println("on query submit: " + query);
+                return true;
+            }
+        };
+        
+        searchView.setOnQueryTextListener(textChangeListener);
+
+        return super.onCreateOptionsMenu(menu);
+
     }
 
 
