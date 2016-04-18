@@ -1,7 +1,6 @@
 package gov.seattle.trails;
 
 import android.Manifest;
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
@@ -10,17 +9,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.SearchView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -51,7 +49,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String LONGITUDE = "longitude";
     private static final String PARK_NAME = "name";
     private static final String PARK_ID = "id";
-    Button BtnOffLeash;
+    FloatingActionButton satelliteButton;
+    FloatingActionButton navigationButton;
+    
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
     private GoogleMap mMap;
@@ -71,22 +71,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         setupToolbar();
-
+        setupButtons();
         /*
         TODO: Create list for various park features (Trails, Off-Leash)
          */
-        //Listeners for buttons to instantiate map data
-        BtnOffLeash = (Button) findViewById(R.id.offLeashButton);
-        BtnOffLeash.setOnClickListener(new OnClickListener() {
-            public void onClick(View view) {
-                new GetTrailData().execute();
-            }
-        });
     }
 
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
         setSupportActionBar(this.toolbar);
+    }
+
+    public void setupButtons() {
+        satelliteButton = (FloatingActionButton) findViewById(R.id.satellite_fab);
+        navigationButton = (FloatingActionButton) findViewById(R.id.navigation_fab);
+
+        OnClickListener fabListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.satellite_fab:
+                        break;
+                    case R.id.navigation_fab:
+                        break;
+                }
+            }
+        };
+        satelliteButton.setOnClickListener(fabListener);
+        navigationButton.setOnClickListener(fabListener);
     }
 
     @Override
