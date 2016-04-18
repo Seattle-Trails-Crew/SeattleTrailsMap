@@ -94,7 +94,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
-        //inflater.inflate(R.menu.options_menu, menu);
         inflater.inflate(R.menu.toolbar_menu, menu);
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -117,7 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         };
-        
+
         searchView.setOnQueryTextListener(textChangeListener);
 
         return super.onCreateOptionsMenu(menu);
