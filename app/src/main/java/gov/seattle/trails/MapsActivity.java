@@ -87,20 +87,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
         setSupportActionBar(this.toolbar);
-        toolbar.inflateMenu(R.menu.toolbar_menu);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false);
-
+        searchView.setQueryHint(getString(R.string.search_hint));
         SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener()
         {
             @Override
