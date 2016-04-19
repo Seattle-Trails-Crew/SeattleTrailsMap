@@ -21,6 +21,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -236,29 +237,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
-            GeoPathEntity geoData = new GeoPathEntity();
+
 
             for (TrailEntity trail : data) {
                 if (trail != null) {
 
                     Log.i("TrailName", trail.getPma_name());
                     Log.i("Canopy", trail.getCanopy());
+                    GeoPathEntity geoData = trail.getThe_geom();
+                    if (geoData != null) {
+                        List<float[]> coordinateArray = geoData.getCoordinates();
+                        float[] point = new float[2];
+                        for (int i = 0; i < coordinateArray.size(); i++) {
+                            //assign latitude and longitude values from array list of arrays
+                            point = coordinateArray.get(i);
+                            if (point != null && point.length == 2){
+                                float lat = point[0];
+                                float lon = point[1];
 
-                    List<float[]> coordinateArray = trail.getThe_geom().getCoordinates();
-                    float[] point = new float[2];
-                    for (int i = 0; i < coordinateArray.size(); i++) {
-                        //assign latitude and longitude values from array list of arrays
-                        
+                                //PolylineOptions trails = new PolylineOptions()
+                                 //       .add(new LatLng())
+
+                                //Polyline polyline = mMap.addPolyline((trails));
+
+                                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
+                            }
+                        }
                     }
                 }
-//                PolylineOptions trails = new PolylineOptions()
-//                        .add(new LatLng()
-//
-//                Polyline polyline = mMap.addPolyline((trails));
-
-
-                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
-                //TODO SET BREAK POINT HERE AND DEBUG SO YOU CAN SEE\/ THE DATA FOR  trail 
             }
 
         }
