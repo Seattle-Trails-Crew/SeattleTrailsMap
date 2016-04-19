@@ -30,19 +30,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import gov.seattle.trails.entity.GeoPathEntity;
 import gov.seattle.trails.entity.TrailEntity;
 
 //main thread
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    //JSON Node Names
-    private static final String LATITUDE = "latitude";
-    private static final String LONGITUDE = "longitude";
-    private static final String PARK_NAME = "name";
-    private static final String PARK_ID = "id";
     Button BtnOffLeash;
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
@@ -98,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*
      check to very persmissions for location data
     */
-    public void askForLocationPermissionIfNeeded(){
+    public void askForLocationPermissionIfNeeded() {
 
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (result != PackageManager.PERMISSION_GRANTED) {
@@ -124,8 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }
-        else{
+        } else {
             //Permission already enabled
             mMap.setMyLocationEnabled(true);
             askUserToEnableLocationIfNeeded();
@@ -159,7 +155,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void askUserToEnableLocationIfNeeded(){
+    public void askUserToEnableLocationIfNeeded() {
         if (!TheApplication.isLocationServiceEnabled(this)) {
             // Ask user if they would like to go and enabled settings
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -185,7 +181,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void takeUserToLocationSettings(){
+    public void takeUserToLocationSettings() {
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
     }
@@ -240,17 +236,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
-            for(TrailEntity trail : data) {
-                //LatLng mark = new LatLng(park.getLatitude(), park.getLongitude());
-                Log.i("TrailName", trail.getPma_name());
-                Log.i("Canopy", trail.getCanopy());
-                trail.getThe_geom();
+            GeoPathEntity geoData = new GeoPathEntity();
+
+            for (TrailEntity trail : data) {
+                if (trail != null) {
+
+                    Log.i("TrailName", trail.getPma_name());
+                    Log.i("Canopy", trail.getCanopy());
+
+                    List<float[]> coordinateArray = trail.getThe_geom().getCoordinates();
+                    float[] point = new float[2];
+                    for (int i = 0; i < coordinateArray.size(); i++) {
+                        //assign latitude and longitude values from array list of arrays
+                        
+                    }
+                }
+//                PolylineOptions trails = new PolylineOptions()
+//                        .add(new LatLng()
+//
+//                Polyline polyline = mMap.addPolyline((trails));
+
+
                 //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
                 //TODO SET BREAK POINT HERE AND DEBUG SO YOU CAN SEE\/ THE DATA FOR  trail 
-
             }
+
         }
     }
 
 
 }
+
+
+
