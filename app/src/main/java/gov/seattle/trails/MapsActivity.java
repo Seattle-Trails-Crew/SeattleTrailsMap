@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -241,20 +244,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             for (TrailEntity trail : data) {
                 if (trail != null) {
-
+                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
                     Log.i("TrailName", trail.getPma_name());
                     Log.i("Canopy", trail.getCanopy());
                     GeoPathEntity geoData = trail.getThe_geom();
                     if (geoData != null) {
                         List<float[]> coordinateArray = geoData.getCoordinates();
+
                         float[] point = new float[2];
                         for (int i = 0; i < coordinateArray.size(); i++) {
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
                             if (point != null && point.length == 2){
                                 float lat = point[0];
-                                float lon = point[1];
-
+                                float lng = point[1];
+                                LatLng pointCoordinate = new LatLng(lat, lng);
+                                coordinatePointsList.add(pointCoordinate);
                                 //PolylineOptions trails = new PolylineOptions()
                                  //       .add(new LatLng())
 
@@ -264,7 +269,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                         }
                     }
+
+                    PolylineOptions trailLine = new PolylineOptions()
+                            .addAll(coordinatePointsList)
+                            .width(5)
+                            .color(Color.RED);
+                    Polyline polyline = mMap.addPolyline(trailLine);
+                    //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                 }
+
             }
 
         }
