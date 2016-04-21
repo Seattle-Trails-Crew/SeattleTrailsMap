@@ -256,8 +256,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
                             if (point != null && point.length == 2){
-                                float lat = point[0];
-                                float lng = point[1];
+                                float lat = point[1];
+                                float lng = point[0];
                                 LatLng pointCoordinate = new LatLng(lat, lng);
                                 coordinatePointsList.add(pointCoordinate);
                                 //PolylineOptions trails = new PolylineOptions()
