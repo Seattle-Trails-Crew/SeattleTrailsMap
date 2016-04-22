@@ -12,9 +12,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,8 +22,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
-
-import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,9 +39,7 @@ import gov.seattle.trails.entity.TrailEntity;
 //main thread
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    Button displayTrailsButton;
-    //variable to hold Off-Leash park data
-    JSONArray offLeashArray = new JSONArray();
+
     private GoogleMap mMap;
 
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
@@ -61,16 +54,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
         /*
         TODO: Create list for various park features (Trails, Off-Leash)
          */
         //Listeners for buttons to instantiate map data
-        displayTrailsButton = (Button) findViewById(R.id.offLeashButton);
-        displayTrailsButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View view) {
-                new GetTrailData().execute();
-            }
-        });
+//        displayTrailsButton = (Button) findViewById(R.id.offLeashButton);
+//        displayTrailsButton.setOnClickListener(new OnClickListener() {
+//            public void onClick(View view) {
+//                new GetTrailData().execute();
+//            }
+//        });
     }
 
     /**
@@ -94,6 +88,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
         askForLocationPermissionIfNeeded();
+        new GetTrailData().execute();
     }
 
     /*
@@ -151,7 +146,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
-                return;
+
             }
 
             // other 'case' lines to check for other
@@ -251,7 +246,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (geoData != null) {
                         List<float[]> coordinateArray = geoData.getCoordinates();
 
-                        float[] point = new float[2];
+                        float[] point;
                         for (int i = 0; i < coordinateArray.size(); i++) {
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
