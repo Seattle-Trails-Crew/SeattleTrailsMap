@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -30,19 +33,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import gov.seattle.trails.entity.GeoPathEntity;
 import gov.seattle.trails.entity.TrailEntity;
 
 //main thread
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    //JSON Node Names
-    private static final String LATITUDE = "latitude";
-    private static final String LONGITUDE = "longitude";
-    private static final String PARK_NAME = "name";
-    private static final String PARK_ID = "id";
     Button BtnOffLeash;
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
@@ -98,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*
      check to very persmissions for location data
     */
-    public void askForLocationPermissionIfNeeded(){
+    public void askForLocationPermissionIfNeeded() {
 
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (result != PackageManager.PERMISSION_GRANTED) {
@@ -124,8 +125,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }
-        else{
+        } else {
             //Permission already enabled
             mMap.setMyLocationEnabled(true);
             askUserToEnableLocationIfNeeded();
@@ -159,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void askUserToEnableLocationIfNeeded(){
+    public void askUserToEnableLocationIfNeeded() {
         if (!TheApplication.isLocationServiceEnabled(this)) {
             // Ask user if they would like to go and enabled settings
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -185,7 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void takeUserToLocationSettings(){
+    public void takeUserToLocationSettings() {
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
     }
@@ -240,17 +240,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
-            for(TrailEntity trail : data) {
-                //LatLng mark = new LatLng(park.getLatitude(), park.getLongitude());
-                Log.i("TrailName", trail.getPma_name());
-                Log.i("Canopy", trail.getCanopy());
-                trail.getThe_geom();
-                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
-                //TODO SET BREAK POINT HERE AND DEBUG SO YOU CAN SEE\/ THE DATA FOR  trail 
+
+
+            for (TrailEntity trail : data) {
+                if (trail != null) {
+                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                    Log.i("TrailName", trail.getPma_name());
+                    Log.i("Canopy", trail.getCanopy());
+                    GeoPathEntity geoData = trail.getThe_geom();
+                    if (geoData != null) {
+                        List<float[]> coordinateArray = geoData.getCoordinates();
+
+                        float[] point = new float[2];
+                        for (int i = 0; i < coordinateArray.size(); i++) {
+                            //assign latitude and longitude values from array list of arrays
+                            point = coordinateArray.get(i);
+                            if (point != null && point.length == 2){
+                                float lat = point[1];
+                                float lng = point[0];
+                                LatLng pointCoordinate = new LatLng(lat, lng);
+                                coordinatePointsList.add(pointCoordinate);
+                                //PolylineOptions trails = new PolylineOptions()
+                                 //       .add(new LatLng())
+
+                                //Polyline polyline = mMap.addPolyline((trails));
+
+                                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
+                            }
+                        }
+                    }
+
+                    PolylineOptions trailLine = new PolylineOptions()
+                            .addAll(coordinatePointsList)
+                            .width(5)
+                            .color(Color.RED);
+                    Polyline polyline = mMap.addPolyline(trailLine);
+                    //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
+                }
 
             }
+
         }
     }
 
 
 }
+
+
+
