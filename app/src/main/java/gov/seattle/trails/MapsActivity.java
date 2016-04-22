@@ -44,7 +44,7 @@ import gov.seattle.trails.entity.TrailEntity;
 //main thread
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    Button BtnOffLeash;
+    Button displayTrailsButton;
     //variable to hold Off-Leash park data
     JSONArray offLeashArray = new JSONArray();
     private GoogleMap mMap;
@@ -65,8 +65,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         TODO: Create list for various park features (Trails, Off-Leash)
          */
         //Listeners for buttons to instantiate map data
-        BtnOffLeash = (Button) findViewById(R.id.offLeashButton);
-        BtnOffLeash.setOnClickListener(new OnClickListener() {
+        displayTrailsButton = (Button) findViewById(R.id.offLeashButton);
+        displayTrailsButton.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
                 new GetTrailData().execute();
             }
@@ -91,7 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
         CameraUpdate panToSeattle = CameraUpdateFactory.newLatLng(seattle);
         mMap.moveCamera(panToSeattle);
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
         askForLocationPermissionIfNeeded();
     }
@@ -108,8 +108,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
 
-                // Show an expanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
+                // TODO: Show an explanation to the user *asynchronously* --
+                //  don't block this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
 
 
@@ -256,16 +256,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
                             if (point != null && point.length == 2){
+                                //socrata data downloads with longitude at index 0
                                 float lat = point[1];
                                 float lng = point[0];
                                 LatLng pointCoordinate = new LatLng(lat, lng);
                                 coordinatePointsList.add(pointCoordinate);
-                                //PolylineOptions trails = new PolylineOptions()
-                                 //       .add(new LatLng())
 
-                                //Polyline polyline = mMap.addPolyline((trails));
-
-                                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
                             }
                         }
                     }
@@ -273,8 +269,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     PolylineOptions trailLine = new PolylineOptions()
                             .addAll(coordinatePointsList)
                             .width(5)
-                            .color(Color.RED);
+                            .color(Color.RED); //TODO: get color values from iOS version
                     Polyline polyline = mMap.addPolyline(trailLine);
+                    //TODO: add a single marker for each park
                     //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                 }
 
