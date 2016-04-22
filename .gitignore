@@ -28,6 +28,7 @@ proguard/
 
 # Intellij IDEA project files
 /.idea
+*.idea
 *.iml
 
 /captures
