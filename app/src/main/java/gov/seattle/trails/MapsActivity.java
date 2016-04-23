@@ -1,7 +1,6 @@
 package gov.seattle.trails;
 
 import android.Manifest;
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
@@ -11,12 +10,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -106,6 +104,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 switch (v.getId()) {
                     case R.id.satellite_fab:
+                        int mapType = mMap.getMapType();
+                        if (mapType == 1) mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                        else
+                            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                         break;
                     case R.id.navigation_fab:
                         break;
