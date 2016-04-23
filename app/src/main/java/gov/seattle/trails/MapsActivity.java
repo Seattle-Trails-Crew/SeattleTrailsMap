@@ -8,12 +8,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.support.design.widget.FloatingActionButton;
 import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
@@ -29,6 +31,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -38,9 +42,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import gov.seattle.trails.entity.GeoPathEntity;
 import gov.seattle.trails.entity.TrailEntity;
 
 //main thread
@@ -60,6 +67,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Toolbar toolbar;
 
+    FloatingActionButton satelliteButton;
+    FloatingActionButton navigationButton;
+
     //instantiate app with Map Fragment
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,21 +82,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         setupToolbar();
 
+        setupButtons();
+
         /*
         TODO: Create list for various park features (Trails, Off-Leash)
          */
-        //Listeners for buttons to instantiate map data
-        BtnOffLeash = (Button) findViewById(R.id.offLeashButton);
-        BtnOffLeash.setOnClickListener(new OnClickListener() {
-            public void onClick(View view) {
-                new GetTrailData().execute();
-            }
-        });
+
+
+        new GetTrailData().execute();
     }
 
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
         setSupportActionBar(this.toolbar);
+    }
+
+    public void setupButtons() {
+        satelliteButton = (FloatingActionButton) findViewById(R.id.satellite_fab);
+        navigationButton = (FloatingActionButton) findViewById(R.id.navigation_fab);
+
+        OnClickListener fabListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.satellite_fab:
+                        break;
+                    case R.id.navigation_fab:
+                        break;
+                }
+            }
+        };
+        satelliteButton.setOnClickListener(fabListener);
+        navigationButton.setOnClickListener(fabListener);
     }
 
     @Override
@@ -289,17 +316,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
-            for(TrailEntity trail : data) {
-                //LatLng mark = new LatLng(park.getLatitude(), park.getLongitude());
-                Log.i("TrailName", trail.getPma_name());
-                Log.i("Canopy", trail.getCanopy());
-                trail.getThe_geom();
-                //mMap.addMarker(new MarkerOptions().position(mark).title(park.getName()));
-                //TODO SET BREAK POINT HERE AND DEBUG SO YOU CAN SEE\/ THE DATA FOR  trail 
+
+
+            for (TrailEntity trail : data) {
+                if (trail != null) {
+                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                    Log.i("TrailName", trail.getPma_name());
+                    Log.i("Canopy", trail.getCanopy());
+                    GeoPathEntity geoData = trail.getThe_geom();
+                    if (geoData != null) {
+                        List<float[]> coordinateArray = geoData.getCoordinates();
+
+                        float[] point;
+                        for (int i = 0; i < coordinateArray.size(); i++) {
+                            //assign latitude and longitude values from array list of arrays
+                            point = coordinateArray.get(i);
+                            if (point != null && point.length == 2){
+                                //socrata data downloads with longitude at index 0
+                                float lat = point[1];
+                                float lng = point[0];
+                                LatLng pointCoordinate = new LatLng(lat, lng);
+                                coordinatePointsList.add(pointCoordinate);
+
+                            }
+                        }
+                    }
+
+                    PolylineOptions trailLine = new PolylineOptions()
+                            .addAll(coordinatePointsList)
+                            .width(5)
+                            .color(Color.RED); //TODO: get color values from iOS version
+                    Polyline polyline = mMap.addPolyline(trailLine);
+                    //TODO: add a single marker for each park
+                    //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
+                }
 
             }
+
         }
     }
-
-
 }
