@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -88,8 +91,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TODO: Create list for various park features (Trails, Off-Leash)
          */
 
-
-        new GetTrailData().execute();
+        if (isConnectedToInternet()) {
+            new GetTrailData().execute();
+        } else {
+            Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
+        }
     }
 
     public void setupToolbar() {
@@ -147,6 +153,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public boolean isConnectedToInternet() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
 
     /**
      * Manipulates the map once available.
@@ -315,7 +326,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(String dataString) {
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
-
 
 
             for (TrailEntity trail : data) {
