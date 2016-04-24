@@ -327,40 +327,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
+            if (data != null) {
+                for (TrailEntity trail : data) {
+                    if (trail != null) {
+                        ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                        Log.i("TrailName", trail.getPma_name());
+                        Log.i("Canopy", trail.getCanopy());
+                        GeoPathEntity geoData = trail.getThe_geom();
+                        if (geoData != null) {
+                            List<float[]> coordinateArray = geoData.getCoordinates();
 
-            for (TrailEntity trail : data) {
-                if (trail != null) {
-                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
-                    Log.i("TrailName", trail.getPma_name());
-                    Log.i("Canopy", trail.getCanopy());
-                    GeoPathEntity geoData = trail.getThe_geom();
-                    if (geoData != null) {
-                        List<float[]> coordinateArray = geoData.getCoordinates();
+                            float[] point;
+                            for (int i = 0; i < coordinateArray.size(); i++) {
+                                //assign latitude and longitude values from array list of arrays
+                                point = coordinateArray.get(i);
+                                if (point != null && point.length == 2) {
+                                    //socrata data downloads with longitude at index 0
+                                    float lat = point[1];
+                                    float lng = point[0];
+                                    LatLng pointCoordinate = new LatLng(lat, lng);
+                                    coordinatePointsList.add(pointCoordinate);
 
-                        float[] point;
-                        for (int i = 0; i < coordinateArray.size(); i++) {
-                            //assign latitude and longitude values from array list of arrays
-                            point = coordinateArray.get(i);
-                            if (point != null && point.length == 2){
-                                //socrata data downloads with longitude at index 0
-                                float lat = point[1];
-                                float lng = point[0];
-                                LatLng pointCoordinate = new LatLng(lat, lng);
-                                coordinatePointsList.add(pointCoordinate);
-
+                                }
                             }
                         }
+
+                        PolylineOptions trailLine = new PolylineOptions()
+                                .addAll(coordinatePointsList)
+                                .width(5)
+                                .color(Color.RED); //TODO: get color values from iOS version
+                        Polyline polyline = mMap.addPolyline(trailLine);
+                        //TODO: add a single marker for each park
+                        //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                     }
 
-                    PolylineOptions trailLine = new PolylineOptions()
-                            .addAll(coordinatePointsList)
-                            .width(5)
-                            .color(Color.RED); //TODO: get color values from iOS version
-                    Polyline polyline = mMap.addPolyline(trailLine);
-                    //TODO: add a single marker for each park
-                    //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                 }
-
             }
 
         }
