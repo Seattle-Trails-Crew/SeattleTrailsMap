@@ -105,9 +105,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (v.getId()) {
                     case R.id.satellite_fab:
                         int mapType = mMap.getMapType();
-                        if (mapType == 1) mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-                        else
+                        if (mapType == 1) {
+                            mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                            satelliteButton.setImageResource(R.drawable.ic_map_black_24px);
+                        }
+                        else {
                             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                            satelliteButton.setImageResource(R.drawable.ic_satellite_black_24px);
+                        }
                         break;
                     case R.id.navigation_fab:
                         break;
