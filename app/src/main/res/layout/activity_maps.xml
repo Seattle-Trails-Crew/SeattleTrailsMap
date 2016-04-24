@@ -32,7 +32,8 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/satellite_fab"
-        android:src="@android:drawable/btn_radio"
+        android:src="@drawable/ic_satellite_black_24px"
+
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
