@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -86,8 +89,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TODO: Create list for various park features (Trails, Off-Leash)
          */
 
-
-        new GetTrailData().execute();
+        if (isConnectedToInternet()) {
+            new GetTrailData().execute();
+        } else {
+            Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
+        }
     }
 
     public void setupToolbar() {
@@ -154,6 +160,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public boolean isConnectedToInternet() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
 
     /**
      * Manipulates the map once available.
@@ -323,41 +334,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
+            if (data != null) {
+                for (TrailEntity trail : data) {
+                    if (trail != null) {
+                        ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                        Log.i("TrailName", trail.getPma_name());
+                        Log.i("Canopy", trail.getCanopy());
+                        GeoPathEntity geoData = trail.getThe_geom();
+                        if (geoData != null) {
+                            List<float[]> coordinateArray = geoData.getCoordinates();
 
+                            float[] point;
+                            for (int i = 0; i < coordinateArray.size(); i++) {
+                                //assign latitude and longitude values from array list of arrays
+                                point = coordinateArray.get(i);
+                                if (point != null && point.length == 2) {
+                                    //socrata data downloads with longitude at index 0
+                                    float lat = point[1];
+                                    float lng = point[0];
+                                    LatLng pointCoordinate = new LatLng(lat, lng);
+                                    coordinatePointsList.add(pointCoordinate);
 
-            for (TrailEntity trail : data) {
-                if (trail != null) {
-                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
-                    Log.i("TrailName", trail.getPma_name());
-                    Log.i("Canopy", trail.getCanopy());
-                    GeoPathEntity geoData = trail.getThe_geom();
-                    if (geoData != null) {
-                        List<float[]> coordinateArray = geoData.getCoordinates();
-
-                        float[] point;
-                        for (int i = 0; i < coordinateArray.size(); i++) {
-                            //assign latitude and longitude values from array list of arrays
-                            point = coordinateArray.get(i);
-                            if (point != null && point.length == 2){
-                                //socrata data downloads with longitude at index 0
-                                float lat = point[1];
-                                float lng = point[0];
-                                LatLng pointCoordinate = new LatLng(lat, lng);
-                                coordinatePointsList.add(pointCoordinate);
-
+                                }
                             }
                         }
+
+                        PolylineOptions trailLine = new PolylineOptions()
+                                .addAll(coordinatePointsList)
+                                .width(5)
+                                .color(Color.RED); //TODO: get color values from iOS version
+                        Polyline polyline = mMap.addPolyline(trailLine);
+                        //TODO: add a single marker for each park
+                        //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                     }
 
-                    PolylineOptions trailLine = new PolylineOptions()
-                            .addAll(coordinatePointsList)
-                            .width(5)
-                            .color(Color.RED); //TODO: get color values from iOS version
-                    Polyline polyline = mMap.addPolyline(trailLine);
-                    //TODO: add a single marker for each park
-                    //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
                 }
-
             }
 
         }

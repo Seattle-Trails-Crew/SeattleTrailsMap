@@ -2,5 +2,6 @@
     <string name="app_name">Seattle Trails Map</string>
     <string name="title_activity_maps">Map</string>
     <string name="search_hint">Search...</string>
+    <string name="check_internet_message">Please check your internet connection!</string>
 
 </resources>
