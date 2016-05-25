@@ -25,13 +25,11 @@ import android.view.View.OnClickListener;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -46,6 +44,7 @@ import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
 import gov.seattle.trails.entity.GeoPathEntity;
+import gov.seattle.trails.entity.ParkEntity;
 import gov.seattle.trails.entity.TrailEntity;
 
 //main thread
@@ -174,11 +173,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         //initialize map view to greater Seattle area
-        LatLng seattle = new LatLng(47.609895, -122.330259);
+        LatLng seattle = new LatLng(47.6062, -122.3321);
         //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
-        CameraUpdate panToSeattle = CameraUpdateFactory.newLatLng(seattle);
-        mMap.moveCamera(panToSeattle);
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+        mMap.moveCamera (CameraUpdateFactory.newLatLngZoom(seattle, 11.2f) );
+
 
         askForLocationPermissionIfNeeded();
     }
@@ -288,6 +286,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected String doInBackground(String... url) {
 
+            //connect and download data
             try {
                 URL serviceUrl = new URL(TheApplication.ServiceUrl);
                 HttpsURLConnection con = (HttpsURLConnection) serviceUrl.openConnection();
@@ -312,21 +311,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return jString.toString();
         }
 
+        //draw polylines and drop markers
         protected void onPostExecute(String dataString) {
             Gson gson = new Gson();
             TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
             if (data != null) {
+
+                //store each group of trails in a single park entity
+                ArrayList<ParkEntity> parkEntityArrayList = new ArrayList<>();
+
+                //each trail represents just one trail in a group of trails for each park
                 for (TrailEntity trail : data) {
                     if (trail != null) {
+
+                        //coordinatePointsList stores each point of this trail
                         ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
-//                        Log.i("TrailName", trail.getPma_name());
-//                        Log.i("Canopy", trail.getCanopy());
+
+                        //get all points to draw polyline for this trail
                         GeoPathEntity geoData = trail.getThe_geom();
+
                         if (geoData != null) {
                             List<float[]> coordinateArray = geoData.getCoordinates();
 
+                            //array to hold each coordinate
                             float[] point;
+
                             for (int i = 0; i < coordinateArray.size(); i++) {
                                 //assign latitude and longitude values from array list of arrays
                                 point = coordinateArray.get(i);
@@ -336,7 +346,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     float lng = point[0];
                                     LatLng pointCoordinate = new LatLng(lat, lng);
                                     coordinatePointsList.add(pointCoordinate);
-
                                 }
                             }
                         }
@@ -344,15 +353,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         PolylineOptions trailLine = new PolylineOptions()
                                 .addAll(coordinatePointsList)
                                 .width(5)
-                                .color(Color.RED); //TODO: get color values from iOS version
-                        Polyline polyline = mMap.addPolyline(trailLine);
-                        //TODO: add a single marker for each park
-                        //mMap.addMarker(new MarkerOptions().title(trail.getPma_name()));
+                                .color(Color.GREEN); //TODO: get color values from iOS version
+                        mMap.addPolyline(trailLine);
                     }
-
                 }
             }
-
         }
     }
 }

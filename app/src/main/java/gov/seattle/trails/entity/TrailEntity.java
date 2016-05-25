@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by randy.thedford on 4/17/16.
  */
-public class TrailEntity implements Serializable{
+public class TrailEntity implements Serializable {
 
     private String canopy;
     private String condition;
@@ -99,6 +99,11 @@ public class TrailEntity implements Serializable{
         }
     }
 
+    public GeoPathEntity getThe_geom() {
+
+        return the_geom;
+    } //TODO: null handler?
+
     public String getTrail_clas() {
         if (trail_clas == null) {
             return "";
@@ -107,7 +112,7 @@ public class TrailEntity implements Serializable{
         }
     }
 
-    public String getTrail_id () {
+    public String getTrail_id() {
         if (trail_id == null) {
             return "";
         } else {
@@ -132,8 +137,9 @@ public class TrailEntity implements Serializable{
     }
 
     public String getGis_edt_dt() {
+
         return gis_edt_dt;
-    }
+    }//TODO: null handler?
 
     public void setCanopy(String canopy) {
         this.canopy = canopy;
@@ -173,10 +179,6 @@ public class TrailEntity implements Serializable{
 
     public void setSurface_ty(String surface_ty) {
         this.surface_ty = surface_ty;
-    }
-
-    public GeoPathEntity getThe_geom() {
-        return the_geom;
     }
 
     public void setThe_geom(GeoPathEntity the_geom) {

@@ -10,13 +10,15 @@ import java.util.List;
 public class GeoPathEntity implements Serializable {
 
     private String type;
-
     public List<float[]> coordinates = new ArrayList<>();
+
     public void setCoordinates(List<float[]> coordinates) {
-    this.coordinates = coordinates;
+
+        this.coordinates = coordinates;
   }
 
     public List<float[]> getCoordinates() {
+
         return this.coordinates;
     }
 }
