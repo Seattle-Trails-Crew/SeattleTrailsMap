@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -111,8 +112,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (mapType == 1) {
                             mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                             satelliteButton.setImageResource(R.drawable.ic_map_black_24px);
-                        }
-                        else {
+                        } else {
                             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                             satelliteButton.setImageResource(R.drawable.ic_satellite_black_24px);
                         }
@@ -137,17 +137,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setQueryHint(getString(R.string.search_hint));
-        SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener()
-        {
+        SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextChange(String newText)
-            {
+            public boolean onQueryTextChange(String newText) {
                 System.out.println("on text change text: " + newText);
                 return true;
             }
+
             @Override
-            public boolean onQueryTextSubmit(String query)
-            {
+            public boolean onQueryTextSubmit(String query) {
                 System.out.println("on query submit: " + query);
                 return true;
             }
@@ -175,7 +173,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //initialize map view to greater Seattle area
         LatLng seattle = new LatLng(47.6062, -122.3321);
         //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
-        mMap.moveCamera (CameraUpdateFactory.newLatLngZoom(seattle, 11.2f) );
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seattle, 11.2f));
 
 
         askForLocationPermissionIfNeeded();
@@ -184,7 +182,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /*
      check to very permissions for location data
     */
-    public void askForLocationPermissionIfNeeded(){
+    public void askForLocationPermissionIfNeeded() {
 
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (result != PackageManager.PERMISSION_GRANTED) {
@@ -209,8 +207,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }
-        else{
+        } else {
             //Permission already enabled
             mMap.setMyLocationEnabled(true);
             askUserToEnableLocationIfNeeded();
@@ -244,7 +241,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void askUserToEnableLocationIfNeeded(){
+    public void askUserToEnableLocationIfNeeded() {
         if (!TheApplication.isLocationServiceEnabled(this)) {
             // Ask user if they would like to go and enabled settings
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -270,12 +267,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void takeUserToLocationSettings(){
+    public void takeUserToLocationSettings() {
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
     }
-
-
 
 
     private class GetTrailData extends AsyncTask<String, Void, String> {
@@ -314,50 +309,64 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //draw polylines and drop markers
         protected void onPostExecute(String dataString) {
             Gson gson = new Gson();
-            TrailEntity[] data = gson.fromJson(dataString, TrailEntity[].class);
 
-            if (data != null) {
+            TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
+            //store each group of trails in a single park entity
+            ArrayList<ParkEntity> parkEntity = new ArrayList<>();
+            HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
 
-                //store each group of trails in a single park entity
-                ArrayList<ParkEntity> parkEntityArrayList = new ArrayList<>();
+            if (trailEntities != null) {
 
-                //each trail represents just one trail in a group of trails for each park
-                for (TrailEntity trail : data) {
-                    if (trail != null) {
+                //each trail represents just one of a group of trails for each park
+                for (TrailEntity trail : trailEntities) {
 
-                        //coordinatePointsList stores each point of this trail
-                        ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                    // add park to ArrayList<ParkEntity> if it hasn't already been created (based on pmaid value)
+                    // create int value of pmaid for hashCode
+                    String pmaid = trail.getPmaid();
+                    if(parkEntity.isEmpty() || !parkEntityHashMap.containsKey(pmaid)) {
+                        //instantiate park object
+                        ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
+                        //add to ArrayList
+                        parkEntity.add(pe);
+                        //add to HashMap to retrieve object from pmaid
+                        parkEntityHashMap.put(trail.getPmaid(), pe);
+                    }
 
-                        //get all points to draw polyline for this trail
-                        GeoPathEntity geoData = trail.getThe_geom();
+                    //coordinatePointsList stores each point of this trail
+                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
 
-                        if (geoData != null) {
-                            List<float[]> coordinateArray = geoData.getCoordinates();
+                    //get all points to draw polyline for this trail
+                    GeoPathEntity geoData = trail.getThe_geom();
 
-                            //array to hold each coordinate
-                            float[] point;
+                    if (geoData != null) {
+                        List<float[]> coordinateArray = geoData.getCoordinates();
 
-                            for (int i = 0; i < coordinateArray.size(); i++) {
-                                //assign latitude and longitude values from array list of arrays
-                                point = coordinateArray.get(i);
-                                if (point != null && point.length == 2) {
-                                    //socrata data downloads with longitude at index 0
-                                    float lat = point[1];
-                                    float lng = point[0];
-                                    LatLng pointCoordinate = new LatLng(lat, lng);
-                                    coordinatePointsList.add(pointCoordinate);
-                                }
+                        //array to hold each coordinate
+                        float[] point;
+
+                        for (int i = 0; i < coordinateArray.size(); i++) {
+                            //assign latitude and longitude values from array list of arrays
+                            point = coordinateArray.get(i);
+                            if (point != null && point.length == 2) {
+                                //socrata trailEntities downloads with longitude at index 0
+                                float lat = point[1];
+                                float lng = point[0];
+                                LatLng pointCoordinate = new LatLng(lat, lng);
+                                coordinatePointsList.add(pointCoordinate);
                             }
                         }
-
-                        PolylineOptions trailLine = new PolylineOptions()
-                                .addAll(coordinatePointsList)
-                                .width(5)
-                                .color(Color.GREEN); //TODO: get color values from iOS version
-                        mMap.addPolyline(trailLine);
                     }
+
+
+
+                    PolylineOptions trailLine = new PolylineOptions()
+                            .addAll(coordinatePointsList)
+                            .width(5)
+                            .color(Color.GREEN); //TODO: get color values from iOS version
+                    mMap.addPolyline(trailLine);
                 }
             }
         }
     }
 }
+
