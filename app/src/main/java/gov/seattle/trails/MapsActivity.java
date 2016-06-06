@@ -349,12 +349,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
 
+                    //use this instance of ParkEntity to create a new ParkEntity object in HashMap
                     ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
                     if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
                         parkEntityHashMap.put(trail.getPmaid(), pe);
+                        //add first trail that occurs for this pmaid
+                        pe.parkTrails(trail);
                     }
                     else {
-                        //need to evoke this method
+                        //add remaining trails to the same pmaid 
                         ParkEntity thisPark = parkEntityHashMap.get(trail.getPmaid());
                         thisPark.parkTrails(trail);
                     }

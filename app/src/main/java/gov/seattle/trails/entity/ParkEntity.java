@@ -47,6 +47,10 @@ public class ParkEntity {
         parkTrails.add(trails);
     }
 
+    public void dropParkMarker() {
+
+    }
+
 
 
 
