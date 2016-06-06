@@ -312,8 +312,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
             //store each group of trails in a single park entity
-            ArrayList<ParkEntity> parkEntity = new ArrayList<>();
+
             HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
+
 
             if (trailEntities != null) {
 
@@ -322,15 +323,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     // add park to ArrayList<ParkEntity> if it hasn't already been created (based on pmaid value)
                     // create int value of pmaid for hashCode
-                    String pmaid = trail.getPmaid();
-                    if(parkEntity.isEmpty() || !parkEntityHashMap.containsKey(pmaid)) {
-                        //instantiate park object
-                        ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
-                        //add to ArrayList
-                        parkEntity.add(pe);
-                        //add to HashMap to retrieve object from pmaid
-                        parkEntityHashMap.put(trail.getPmaid(), pe);
-                    }
 
                     //coordinatePointsList stores each point of this trail
                     ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
@@ -357,6 +349,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
 
+                    ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
+                    if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                        parkEntityHashMap.put(trail.getPmaid(), pe);
+                    }
+                    //need to evoke this method
+                    pe.parkTrails(trail);
+                    parkEntityHashMap.get(trail.getPmaid());
 
 
                     PolylineOptions trailLine = new PolylineOptions()

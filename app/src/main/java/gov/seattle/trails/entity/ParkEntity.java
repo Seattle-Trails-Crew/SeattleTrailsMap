@@ -1,7 +1,5 @@
 package gov.seattle.trails.entity;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.util.ArrayList;
 
 /**
@@ -12,7 +10,7 @@ public class ParkEntity {
 
     String pma_name;
     String pmaid;
-    ArrayList<LatLng> allCoordinates = new ArrayList<>();
+    ArrayList<TrailEntity> parkTrails = new ArrayList<>();
 
     public ParkEntity() {
         //default constructor
@@ -44,9 +42,9 @@ public class ParkEntity {
         this.pmaid = pmaid;
     }
 
-    public void addCoordinates(ArrayList<LatLng> coordinateArray) {
+    public void parkTrails(TrailEntity trails) {
 
-        coordinateArray.addAll(allCoordinates);
+        parkTrails.add(trails);
     }
 
 
