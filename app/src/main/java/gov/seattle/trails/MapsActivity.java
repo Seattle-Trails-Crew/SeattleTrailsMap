@@ -353,9 +353,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
                         parkEntityHashMap.put(trail.getPmaid(), pe);
                     }
-                    //need to evoke this method
-                    pe.parkTrails(trail);
-                    parkEntityHashMap.get(trail.getPmaid());
+                    else {
+                        //need to evoke this method
+                        ParkEntity thisPark = parkEntityHashMap.get(trail.getPmaid());
+                        thisPark.parkTrails(trail);
+                    }
+
 
 
                     PolylineOptions trailLine = new PolylineOptions()
