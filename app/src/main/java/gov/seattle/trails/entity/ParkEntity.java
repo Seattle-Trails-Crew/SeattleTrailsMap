@@ -1,5 +1,8 @@
 package gov.seattle.trails.entity;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+
 import java.util.ArrayList;
 
 /**
@@ -8,9 +11,11 @@ import java.util.ArrayList;
  */
 public class ParkEntity {
 
-    String pma_name;
-    String pmaid;
-    ArrayList<TrailEntity> parkTrails = new ArrayList<>();
+    private String pma_name;
+    private String pmaid;
+    private ArrayList<TrailEntity> parkTrails = new ArrayList<>();
+    private LatLngBounds.Builder builder = new LatLngBounds.Builder();
+    private LatLngBounds bounds;
 
     public ParkEntity() {
         //default constructor
@@ -43,12 +48,22 @@ public class ParkEntity {
     }
 
     public void parkTrails(TrailEntity trails) {
-
+        //add TrailEntity to ParkEntity
         parkTrails.add(trails);
     }
 
-    public void dropParkMarker() {
+    public void setBounds(ArrayList<LatLng> coordinates) {
+        //set bounds for all trails in park
+        for(LatLng singleCoordinate : coordinates) {
+            builder.include(singleCoordinate);
+        }
+    }
 
+    public LatLng getParkCenter() {
+        //get center of bounds for all trails in park
+        bounds = builder.build();
+        LatLng centerCoordinate = bounds.getCenter();
+        return centerCoordinate;
     }
 
 

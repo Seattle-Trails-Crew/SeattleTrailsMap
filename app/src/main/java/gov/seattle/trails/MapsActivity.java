@@ -30,6 +30,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -40,7 +43,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -350,19 +355,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                     //use this instance of ParkEntity to create a new ParkEntity object in HashMap
-                    ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
                     if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                        ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
                         parkEntityHashMap.put(trail.getPmaid(), pe);
                         //add first trail that occurs for this pmaid
                         pe.parkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
                     }
                     else {
                         //add remaining trails to the same pmaid 
-                        ParkEntity thisPark = parkEntityHashMap.get(trail.getPmaid());
-                        thisPark.parkTrails(trail);
+                        ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
+                        pe.parkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
                     }
-
-
 
                     PolylineOptions trailLine = new PolylineOptions()
                             .addAll(coordinatePointsList)
@@ -370,6 +375,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .color(Color.GREEN); //TODO: get color values from iOS version
                     mMap.addPolyline(trailLine);
                 }
+            }//end trails loop
+            Iterator it = parkEntityHashMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+                ParkEntity pe = parkEntityHashMap.get(pair.getKey());
+                LatLng parkCenterCoordinate = pe.getParkCenter();
+                Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
+                    .position(parkCenterCoordinate)
+                    .title(pe.getPma_name()));
             }
         }
     }
