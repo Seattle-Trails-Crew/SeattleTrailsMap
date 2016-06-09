@@ -25,10 +25,12 @@ import android.view.View.OnClickListener;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -61,10 +63,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
 
-    Toolbar toolbar;
+    private Toolbar toolbar;
 
-    FloatingActionButton satelliteButton;
-    FloatingActionButton navigationButton;
+    private FloatingActionButton satelliteButton;
+    private FloatingActionButton navigationButton;
+
+    private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
+    private HashMap<String, Marker> markerHashMap = new HashMap<>();
+    private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
 
     //instantiate app with Map Fragment
     @Override
@@ -76,19 +82,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        setupToolbar();
-
-        setupButtons();
-
-        /*
-        TODO: Create list for various park features (Trails, Off-Leash)
-         */
-
         if (isConnectedToInternet()) {
             new GetTrailData().execute();
         } else {
             Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
         }
+
+        setupToolbar();
+        setupButtons();
     }
 
     public boolean isConnectedToInternet() {
@@ -106,8 +107,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         satelliteButton = (FloatingActionButton) findViewById(R.id.satellite_fab);
         navigationButton = (FloatingActionButton) findViewById(R.id.navigation_fab);
 
-
-        //TODO: set single floating action button for "get directions"
         OnClickListener fabListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -155,11 +154,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         };
-
         searchView.setOnQueryTextListener(textChangeListener);
 
         return super.onCreateOptionsMenu(menu);
-
     }
 
     /**
@@ -180,7 +177,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seattle, 11.2f));
 
-
         askForLocationPermissionIfNeeded();
     }
 
@@ -199,7 +195,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
-
             } else {
 
                 // No explanation needed, we can request the permission.
@@ -240,7 +235,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request
         }
@@ -265,7 +259,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 }
             };
-
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Would you like to enabled location services?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
@@ -318,9 +311,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
             //store each group of trails in a single park entity
 
-            HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
-
-
             if (trailEntities != null) {
 
                 //each trail represents just one of a group of trails for each park
@@ -355,14 +345,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                     //use this instance of ParkEntity to create a new ParkEntity object in HashMap
-                    if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
-                        ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
+                    if (parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                        ParkEntity pe = new ParkEntity(trail.getPmaid(), trail.getPma_name());
                         parkEntityHashMap.put(trail.getPmaid(), pe);
                         //add first trail that occurs for this pmaid
                         pe.parkTrails(trail);
                         pe.setBounds(coordinatePointsList);
-                    }
-                    else {
+                    } else {
                         //add remaining trails to the same pmaid 
                         ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
                         pe.parkTrails(trail);
@@ -375,16 +364,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .color(Color.GREEN); //TODO: get color values from iOS version
                     mMap.addPolyline(trailLine);
                 }
-            }//end trails loop
+            }// end trails loop
             Iterator it = parkEntityHashMap.entrySet().iterator();
             while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry)it.next();
+                // get next key/value mapping in parkEntityHashMap
+                Map.Entry pair = (Map.Entry) it.next();
+                // get that instance of ParkEntity using key (park name)
                 ParkEntity pe = parkEntityHashMap.get(pair.getKey());
+                // get center coordinate for park
                 LatLng parkCenterCoordinate = pe.getParkCenter();
+                // add park marker
                 Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
-                    .position(parkCenterCoordinate)
-                    .title(pe.getPma_name()));
+                        .position(parkCenterCoordinate)
+                        .title(pe.getPma_name()));
+                // add marker to markerHashMap to reference in ClickListener
+                markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
+                markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
             }
+            GoogleMap.OnMarkerClickListener listener = new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Marker selectedMarker = markerHashMap.get(marker.getId());
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
+                    if(marker.equals(selectedMarker)) {
+                        //animate camera to zoom into map
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
+                    }
+                    return true;
+                }
+            };
+            mMap.setOnMarkerClickListener(listener);
         }
     }
 }

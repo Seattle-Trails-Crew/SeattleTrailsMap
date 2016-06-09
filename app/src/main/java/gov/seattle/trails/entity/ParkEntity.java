@@ -3,6 +3,7 @@ package gov.seattle.trails.entity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -21,7 +22,7 @@ public class ParkEntity {
         //default constructor
     }
 
-    public ParkEntity(String pma_name, String pmaid) {
+    public ParkEntity(String pmaid, String pma_name) {
         this.pma_name = pma_name;
         this.pmaid = pmaid;
     }
@@ -57,6 +58,10 @@ public class ParkEntity {
         for(LatLng singleCoordinate : coordinates) {
             builder.include(singleCoordinate);
         }
+    }
+
+    public LatLngBounds getBounds() {
+        return bounds;
     }
 
     public LatLng getParkCenter() {
