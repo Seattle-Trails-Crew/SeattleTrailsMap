@@ -389,6 +389,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(marker.equals(selectedMarker)) {
                         //animate camera to zoom into map
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
+                        selectedMarker.showInfoWindow();
                     }
                     return true;
                 }
