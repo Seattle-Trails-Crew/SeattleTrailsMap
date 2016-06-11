@@ -25,14 +25,11 @@ import android.view.View.OnClickListener;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -343,26 +340,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                     }
+                    trail.setCoordinatePointList(coordinatePointsList);
 
                     //use this instance of ParkEntity to create a new ParkEntity object in HashMap
                     if (parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
                         ParkEntity pe = new ParkEntity(trail.getPmaid(), trail.getPma_name());
                         parkEntityHashMap.put(trail.getPmaid(), pe);
                         //add first trail that occurs for this pmaid
-                        pe.parkTrails(trail);
+                        pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
                     } else {
                         //add remaining trails to the same pmaid 
                         ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
-                        pe.parkTrails(trail);
+                        pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
                     }
 
-                    PolylineOptions trailLine = new PolylineOptions()
-                            .addAll(coordinatePointsList)
-                            .width(5)
-                            .color(Color.GREEN); //TODO: get color values from iOS version
-                    mMap.addPolyline(trailLine);
+
                 }
             }// end trails loop
             Iterator it = parkEntityHashMap.entrySet().iterator();
@@ -385,11 +379,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     Marker selectedMarker = markerHashMap.get(marker.getId());
+                    // get ParkEntity object by getting pmaid value for selected pin using pin's id value
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
+                    // retrieve all trail objects for the selected park
+                    ArrayList<TrailEntity> selectedParkTrails = pe.getParkTrails();
+
+                    // zoom to park
                     if(marker.equals(selectedMarker)) {
-                        //animate camera to zoom into map
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
+
+                        // get and draw polylines
+                        ArrayList <LatLng> trailCoordinatePoints = new ArrayList<>();
+                        for(TrailEntity te : selectedParkTrails) {
+                            trailCoordinatePoints = te.getCoordinatePointList();
+                            PolylineOptions trailLine = new PolylineOptions()
+                                    .addAll(trailCoordinatePoints)
+                                    .width(5)
+                                    .color(Color.GREEN); //TODO: get color values from iOS version
+                            mMap.addPolyline(trailLine);
+                        }
+                        //animate camera to zoom into map
                     }
                     return true;
                 }

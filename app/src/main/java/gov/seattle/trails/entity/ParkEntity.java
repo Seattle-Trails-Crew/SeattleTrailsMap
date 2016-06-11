@@ -48,14 +48,18 @@ public class ParkEntity {
         this.pmaid = pmaid;
     }
 
-    public void parkTrails(TrailEntity trails) {
+    public void addParkTrails(TrailEntity trails) {
         //add TrailEntity to ParkEntity
         parkTrails.add(trails);
     }
 
+    public ArrayList<TrailEntity> getParkTrails() {
+        return parkTrails;
+    }
+
     public void setBounds(ArrayList<LatLng> coordinates) {
         //set bounds for all trails in park
-        for(LatLng singleCoordinate : coordinates) {
+        for (LatLng singleCoordinate : coordinates) {
             builder.include(singleCoordinate);
         }
     }
@@ -70,8 +74,6 @@ public class ParkEntity {
         LatLng centerCoordinate = bounds.getCenter();
         return centerCoordinate;
     }
-
-
 
 
     // calculate center of all trail points and drop pin on park
