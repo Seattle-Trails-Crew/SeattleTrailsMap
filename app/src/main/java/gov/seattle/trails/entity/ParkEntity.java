@@ -1,14 +1,22 @@
 package gov.seattle.trails.entity;
 
+import android.graphics.Color;
+
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+import gov.seattle.trails.MapsActivity;
+
 /**
  * Created by Craig Morrison on 5/16/16.
- * Each park marker calculated based on top-right to bottom-left lat/lon coordinates
+ * Park Marker coordinates calculated using LatLngBounds of all LatLng
+ * coordinates of trails in each ParkEntity.
  */
 public class ParkEntity {
 
@@ -55,6 +63,25 @@ public class ParkEntity {
 
     public ArrayList<TrailEntity> getParkTrails() {
         return parkTrails;
+    }
+
+    /*
+    drawParkTrails gets each trail's coordinates and adds them as a separate entity in trailCoordinatePoints
+    todo: add marker for each trail, set data to be displayed in info window of each marker
+    todo: color-code trails based on terrain and difficulty
+     */
+    public ArrayList<PolylineOptions> drawParkTrails() {
+        ArrayList <LatLng> trailCoordinatePoints;
+        ArrayList<PolylineOptions> trailLines = new ArrayList<>();
+        for(TrailEntity te : parkTrails) {
+            trailCoordinatePoints = te.getCoordinatePointList();
+            PolylineOptions trailLine = new PolylineOptions()
+            .addAll(trailCoordinatePoints)
+            .width(5)
+            .color(Color.GREEN);
+            trailLines.add(trailLine);
+        }
+        return trailLines;
     }
 
     public void setBounds(ArrayList<LatLng> coordinates) {

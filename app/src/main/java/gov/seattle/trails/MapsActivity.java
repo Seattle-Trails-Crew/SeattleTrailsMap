@@ -388,23 +388,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(marker.equals(selectedMarker)) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
-
-                        // get and draw polylines
-                        ArrayList <LatLng> trailCoordinatePoints = new ArrayList<>();
-                        for(TrailEntity te : selectedParkTrails) {
-                            trailCoordinatePoints = te.getCoordinatePointList();
-                            PolylineOptions trailLine = new PolylineOptions()
-                                    .addAll(trailCoordinatePoints)
-                                    .width(5)
-                                    .color(Color.GREEN); //TODO: get color values from iOS version
-                            mMap.addPolyline(trailLine);
+                        for(PolylineOptions polylineOptions : pe.drawParkTrails())
+                        {
+                            mMap.addPolyline(polylineOptions);
                         }
-                        //animate camera to zoom into map
                     }
                     return true;
                 }
             };
             mMap.setOnMarkerClickListener(listener);
+
+
         }
     }
 }
