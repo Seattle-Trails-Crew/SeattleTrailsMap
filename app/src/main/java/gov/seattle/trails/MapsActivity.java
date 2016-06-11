@@ -29,9 +29,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -68,6 +70,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
+    private HashMap<String, TrailEntity> polyLineHashMap = new HashMap<>();
 
     //instantiate app with Map Fragment
     @Override
@@ -375,31 +378,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
             }
-            GoogleMap.OnMarkerClickListener listener = new GoogleMap.OnMarkerClickListener() {
+            GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     Marker selectedMarker = markerHashMap.get(marker.getId());
                     // get ParkEntity object by getting pmaid value for selected pin using pin's id value
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
-                    // retrieve all trail objects for the selected park
-                    ArrayList<TrailEntity> selectedParkTrails = pe.getParkTrails();
 
+                    // retrieve all trail objects for the selected park
                     // zoom to park
-                    if(marker.equals(selectedMarker)) {
+                    if (marker.equals(selectedMarker)) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
-                        for(PolylineOptions polylineOptions : pe.drawParkTrails())
-                        {
+                        for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
                             mMap.addPolyline(polylineOptions);
                         }
                     }
                     return true;
                 }
             };
-            mMap.setOnMarkerClickListener(listener);
-
+            mMap.setOnMarkerClickListener(markerClickListener);
 
         }
+
     }
 }
+
 
