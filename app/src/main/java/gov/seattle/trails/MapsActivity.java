@@ -70,7 +70,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
-    private HashMap<String, TrailEntity> polyLineHashMap = new HashMap<>();
+    private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
 
     //instantiate app with Map Fragment
     @Override
@@ -391,7 +391,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
                         for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
-                            mMap.addPolyline(polylineOptions);
+                            Polyline trailLine = mMap.addPolyline(polylineOptions);
+                            polyLineHashMap.put(trailLine.hashCode(), trailLine);
                         }
                     }
                     return true;
@@ -399,6 +400,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
             mMap.setOnMarkerClickListener(markerClickListener);
 
+            GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
+                @Override
+                public void onPolylineClick(Polyline polyline) {
+                    polyline.setWidth(10);
+                    //do stuff here
+                    //drop invisible marker and show details of trail
+                    //make polyline thicker
+
+                }
+            };
+            mMap.setOnPolylineClickListener(polylineClickListener);
         }
 
     }

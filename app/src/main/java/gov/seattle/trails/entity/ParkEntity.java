@@ -77,21 +77,21 @@ public class ParkEntity {
             trailCoordinatePoints = te.getCoordinatePointList();
             PolylineOptions trailLine = new PolylineOptions()
                     .addAll(trailCoordinatePoints)
-                    .width(5)
-                    .color(Color.GREEN)
+                    .width(3)
+                    .color(Color.rgb(34, 199, 45))
                     .clickable(true);
             switch (te.getSurface_ty().toLowerCase()) {
-                case "grass":trailLine.color(Color.rgb(145,126,90));
+                case "grass":trailLine.color(Color.rgb(10, 138,19));
                     break;
-                case "soil":trailLine.color(Color.rgb(145,126,90));
+                case "soil":trailLine.color(Color.rgb(10, 138,19));
                     break;
-                case "gravel":trailLine.color(Color.GRAY);
+                case "gravel":trailLine.color(Color.rgb(7, 103, 230));
                     break;
-                case "bark":trailLine.color(Color.GRAY);
+                case "bark":trailLine.color(Color.rgb(7, 103, 230));
                     break;
-                case "stairs":trailLine.color(Color.RED);
+                case "stairs":trailLine.color(Color.rgb(166, 36, 36));
                     break;
-                case "steps":trailLine.color(Color.RED);
+                case "steps":trailLine.color(Color.rgb(166, 36, 36));
                     break;
                 // if none of these statements trail will be on boardwalk, asphalt, bridge, or concrete
                 // and are assumed to be easy to traverse... so will default to Color.GREEN
