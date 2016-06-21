@@ -71,6 +71,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
+    private HashMap<Integer, TrailEntity> polylineTrailEntityHashMap = new HashMap<>();
 
     //instantiate app with Map Fragment
     @Override
@@ -393,6 +394,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
                             Polyline trailLine = mMap.addPolyline(polylineOptions);
                             polyLineHashMap.put(trailLine.hashCode(), trailLine);
+                            // add marker to each polyline here, but make it invisible
+                            // when OnPolylineClickListener is clicked marker will be visible and display trail features
                         }
                     }
                     return true;

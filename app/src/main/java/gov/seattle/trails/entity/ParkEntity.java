@@ -79,7 +79,8 @@ public class ParkEntity {
                     .addAll(trailCoordinatePoints)
                     .width(3)
                     .color(Color.rgb(34, 199, 45))
-                    .clickable(true);
+                    .clickable(true)
+                    .geodesic(true);
             switch (te.getSurface_ty().toLowerCase()) {
                 case "grass":trailLine.color(Color.rgb(10, 138,19));
                     break;
@@ -99,6 +100,12 @@ public class ParkEntity {
             trailLines.add(trailLine);
         }
         return trailLines;
+    }
+
+    public String getTrailData() {
+
+         // create string of data for each trail
+         return "Trail Data";
     }
 
     public void setBounds(ArrayList<LatLng> coordinates) {

@@ -3,7 +3,6 @@ package gov.seattle.trails.entity;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
