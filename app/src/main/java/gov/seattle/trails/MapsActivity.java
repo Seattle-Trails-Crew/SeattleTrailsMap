@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -71,7 +70,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
-    private HashMap<Integer, TrailEntity> polylineTrailEntityHashMap = new HashMap<>();
+    private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
+    private CameraPosition currentCameraPosition;
 
     //instantiate app with Map Fragment
     @Override
@@ -391,11 +391,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (marker.equals(selectedMarker)) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
+                        
                         for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
                             Polyline trailLine = mMap.addPolyline(polylineOptions);
                             polyLineHashMap.put(trailLine.hashCode(), trailLine);
-                            // add marker to each polyline here, but make it invisible
-                            // when OnPolylineClickListener is clicked marker will be visible and display trail features
+                            // add polyline to global array list to use in OnMapClickListener
+                            // to clear lines when map is clicked
+                            currentPolylinesArrayList.add(trailLine);
                         }
                     }
                     return true;
@@ -403,17 +405,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
             mMap.setOnMarkerClickListener(markerClickListener);
 
-            GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
+            final GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
                 @Override
                 public void onPolylineClick(Polyline polyline) {
                     polyline.setWidth(10);
-                    //do stuff here
-                    //drop invisible marker and show details of trail
-                    //make polyline thicker
-
                 }
             };
             mMap.setOnPolylineClickListener(polylineClickListener);
+
+            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    //clear polylines
+                    for(Polyline polyline : currentPolylinesArrayList) {
+                        polyline.remove();
+                    }
+                }
+            };
+            mMap.setOnMapClickListener(mapClickListener);
+
+            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
+                @Override
+                public void onCameraChange(CameraPosition cameraPosition) {
+
+                }
+            };
         }
 
     }
