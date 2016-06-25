@@ -387,6 +387,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // get ParkEntity object by getting pmaid value for selected pin using pin's id value
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
 
+                    if(!currentPolylinesArrayList.isEmpty()) {
+                        for(Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+                    }
+
                     // retrieve all trail objects for the selected park
                     // zoom to park
                     if (marker.equals(selectedMarker)) {
@@ -426,19 +432,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
             mMap.setOnMapClickListener(mapClickListener);
 
-            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
-                @Override
-                // CameraPosition is constantly updated when map moves...
-                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
-                public void onCameraChange(CameraPosition cameraPosition) {
-                    if (cameraPosition.zoom < currentCameraPosition.zoom + 1) {
-                        for (Polyline polyline : currentPolylinesArrayList) {
-                            polyline.remove();
-                        }
-                    }
-                }
-            };
-            mMap.setOnCameraChangeListener(cameraChangeListener);
+//            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
+//                @Override
+//                // CameraPosition is constantly updated when map moves...
+//                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
+//                public void onCameraChange(CameraPosition cameraPosition) {
+//                    if (cameraPosition.) {
+//                        for (Polyline polyline : currentPolylinesArrayList) {
+//                            polyline.remove();
+//                        }
+//                    }
+//                }
+//            };
+//            mMap.setOnCameraChangeListener(cameraChangeListener);
         }
 
     }

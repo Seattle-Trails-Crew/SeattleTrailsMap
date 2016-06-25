@@ -2,16 +2,11 @@ package gov.seattle.trails.entity;
 
 import android.graphics.Color;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-
-import gov.seattle.trails.MapsActivity;
 
 /**
  * Created by Craig Morrison on 5/16/16.
@@ -103,10 +98,20 @@ public class ParkEntity {
     }
 
     public String getTrailData() {
+        ArrayList<String> trailFeaturesList = new ArrayList<>();
+        for(TrailEntity te : parkTrails) {
+            String trailFeature = te.getSurface_ty();
+            if(trailFeaturesList.isEmpty() || !trailFeaturesList.contains(trailFeature)) {
+                trailFeaturesList.add(trailFeature);
+            }
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String trailFeature : trailFeaturesList) {
+            stringBuilder.append(trailFeature);
+            stringBuilder.append(" ");
+        }
 
-        String trailData = "Trail Data displayed here";
-
-         return trailData;
+         return stringBuilder.toString();
     }
 
     public void setBounds(ArrayList<LatLng> coordinates) {
