@@ -374,7 +374,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // add park marker
                 Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
                         .position(parkCenterCoordinate)
-                        .title(pe.getPma_name()));
+                        .title(pe.getPma_name())
+                        .snippet(pe.getTrailData()));
                 // add marker to markerHashMap to reference in ClickListener
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
@@ -391,7 +392,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (marker.equals(selectedMarker)) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
-                        
+
                         for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
                             Polyline trailLine = mMap.addPolyline(polylineOptions);
                             polyLineHashMap.put(trailLine.hashCode(), trailLine);
@@ -399,6 +400,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // to clear lines when map is clicked
                             currentPolylinesArrayList.add(trailLine);
                         }
+                        currentCameraPosition = mMap.getCameraPosition();
                     }
                     return true;
                 }
@@ -426,10 +428,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
                 @Override
+                // CameraPosition is constantly updated when map moves...
+                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
                 public void onCameraChange(CameraPosition cameraPosition) {
-
+                    if (cameraPosition.zoom < currentCameraPosition.zoom + 1) {
+                        for (Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+                    }
                 }
             };
+            mMap.setOnCameraChangeListener(cameraChangeListener);
         }
 
     }

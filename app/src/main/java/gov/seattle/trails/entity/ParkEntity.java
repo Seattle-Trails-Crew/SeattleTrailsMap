@@ -104,8 +104,9 @@ public class ParkEntity {
 
     public String getTrailData() {
 
-         // create string of data for each trail
-         return "Trail Data";
+        String trailData = "Trail Data displayed here";
+
+         return trailData;
     }
 
     public void setBounds(ArrayList<LatLng> coordinates) {
