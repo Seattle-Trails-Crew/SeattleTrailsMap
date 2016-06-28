@@ -123,6 +123,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         break;
                     case R.id.navigation_fab:
+                        //TODO: set intent to open maps app with direction from current location
                         break;
                 }
             }
@@ -363,6 +364,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
             }// end trails loop
+
+            /*
+                Iterate through HashMap to place markers at the center of each park or set of trails
+             */
             Iterator it = parkEntityHashMap.entrySet().iterator();
             while (it.hasNext()) {
                 // get next key/value mapping in parkEntityHashMap
@@ -380,6 +385,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
             }
+
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                public View getInfoWindow(Marker marker) {
+                    return null;
+                }
+
+                @Override
+                public View getInfoContents(Marker marker) {
+                    return null;
+                }
+            });
+
             GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
