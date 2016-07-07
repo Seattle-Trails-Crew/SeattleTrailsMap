@@ -1,6 +1,9 @@
 package gov.seattle.trails.entity;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Created by randy.thedford on 4/17/16.
@@ -22,6 +25,8 @@ public class TrailEntity implements Serializable {
     private String trail_id;
     private String trail_num;
     private String width;
+    private ArrayList<LatLng> coordinatePointList;
+
 
     public TrailEntity() {
         //default constructor
@@ -136,6 +141,10 @@ public class TrailEntity implements Serializable {
         }
     }
 
+    public ArrayList<LatLng> getCoordinatePointList() {
+        return coordinatePointList;
+    }
+
     public String getGis_edt_dt() {
 
         return gis_edt_dt;
@@ -199,6 +208,10 @@ public class TrailEntity implements Serializable {
 
     public void setWidth(String width) {
         this.width = width;
+    }
+
+    public void setCoordinatePointList(ArrayList<LatLng> cpl) {
+        this.coordinatePointList = cpl;
     }
 
 

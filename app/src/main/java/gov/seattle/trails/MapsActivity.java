@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -23,13 +22,18 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -40,7 +44,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -56,10 +62,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
 
-    Toolbar toolbar;
+    private Toolbar toolbar;
 
-    FloatingActionButton satelliteButton;
-    FloatingActionButton navigationButton;
+    private FloatingActionButton satelliteButton;
+    private FloatingActionButton navigationButton;
+
+    private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
+    private HashMap<String, Marker> markerHashMap = new HashMap<>();
+    private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
+    private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
+    private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
+    private CameraPosition currentCameraPosition;
 
     //instantiate app with Map Fragment
     @Override
@@ -71,19 +84,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        setupToolbar();
-
-        setupButtons();
-
-        /*
-        TODO: Create list for various park features (Trails, Off-Leash)
-         */
-
         if (isConnectedToInternet()) {
             new GetTrailData().execute();
         } else {
             Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
         }
+
+        setupToolbar();
+        setupButtons();
     }
 
     public boolean isConnectedToInternet() {
@@ -101,8 +109,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         satelliteButton = (FloatingActionButton) findViewById(R.id.satellite_fab);
         navigationButton = (FloatingActionButton) findViewById(R.id.navigation_fab);
 
-
-        //TODO: set single floating action button for "get directions"
         OnClickListener fabListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,6 +124,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         break;
                     case R.id.navigation_fab:
+                        //TODO: set intent to open maps app with direction from current location
                         break;
                 }
             }
@@ -150,11 +157,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         };
-
         searchView.setOnQueryTextListener(textChangeListener);
 
         return super.onCreateOptionsMenu(menu);
-
     }
 
     /**
@@ -175,7 +180,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seattle, 11.2f));
 
-
         askForLocationPermissionIfNeeded();
     }
 
@@ -194,7 +198,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
-
             } else {
 
                 // No explanation needed, we can request the permission.
@@ -235,7 +238,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request
         }
@@ -260,7 +262,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 }
             };
-
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Would you like to enabled location services?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
@@ -313,9 +314,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
             //store each group of trails in a single park entity
 
-            HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
-
-
             if (trailEntities != null) {
 
                 //each trail represents just one of a group of trails for each park
@@ -348,30 +346,140 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                     }
+                    trail.setCoordinatePointList(coordinatePointsList);
 
                     //use this instance of ParkEntity to create a new ParkEntity object in HashMap
-                    ParkEntity pe = new ParkEntity(trail.getPma_name(), trail.getPmaid());
-                    if(parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                    if (parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                        ParkEntity pe = new ParkEntity(trail.getPmaid(), trail.getPma_name());
                         parkEntityHashMap.put(trail.getPmaid(), pe);
                         //add first trail that occurs for this pmaid
-                        pe.parkTrails(trail);
-                    }
-                    else {
+                        pe.addParkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
+                    } else {
                         //add remaining trails to the same pmaid 
-                        ParkEntity thisPark = parkEntityHashMap.get(trail.getPmaid());
-                        thisPark.parkTrails(trail);
+                        ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
+                        pe.addParkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
                     }
 
 
-
-                    PolylineOptions trailLine = new PolylineOptions()
-                            .addAll(coordinatePointsList)
-                            .width(5)
-                            .color(Color.GREEN); //TODO: get color values from iOS version
-                    mMap.addPolyline(trailLine);
                 }
+            }// end trails loop
+
+            /*
+                Iterate through HashMap to place markers at the center of each park or set of trails
+             */
+            Iterator it = parkEntityHashMap.entrySet().iterator();
+            while (it.hasNext()) {
+                // get next key/value mapping in parkEntityHashMap
+                Map.Entry pair = (Map.Entry) it.next();
+                // get that instance of ParkEntity using key (park name)
+                ParkEntity pe = parkEntityHashMap.get(pair.getKey());
+                // get center coordinate for park
+                LatLng parkCenterCoordinate = pe.getParkCenter();
+
+                // add park marker
+                Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
+                        .position(parkCenterCoordinate)
+                        .title(pe.getPma_name()));
+                // add marker to markerHashMap to reference in ClickListener
+                markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
+                markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
             }
+
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                public View getInfoWindow(Marker marker) {
+                    return null;
+                }
+
+                @Override
+                public View getInfoContents(Marker marker) {
+
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
+
+                    //set text view formatter for info window contents
+                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout,null);
+                    marker = markerHashMap.get(marker.getId());
+
+                    TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
+                    markerTitleText.setText(marker.getTitle());
+
+                    TextView markerInfoText = (TextView) markerView.findViewById(R.id.marker_info_text);
+                    markerInfoText.setText(pe.getTrailData(), TextView.BufferType.SPANNABLE);
+
+                    return markerView;
+                }
+            });
+
+            GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Marker selectedMarker = markerHashMap.get(marker.getId());
+                    // get ParkEntity object by getting pmaid value for selected pin using pin's id value
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
+
+                    if(!currentPolylinesArrayList.isEmpty()) {
+                        for(Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+                    }
+
+                    // retrieve all trail objects for the selected park
+                    // zoom to park
+                    if (marker.equals(selectedMarker)) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
+                        selectedMarker.showInfoWindow();
+
+                        for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
+                            Polyline trailLine = mMap.addPolyline(polylineOptions);
+                            polyLineHashMap.put(trailLine.hashCode(), trailLine);
+                            // add polyline to global array list to use in OnMapClickListener
+                            // to clear lines when map is clicked
+                            currentPolylinesArrayList.add(trailLine);
+                        }
+                        currentCameraPosition = mMap.getCameraPosition();
+                    }
+                    return true;
+                }
+            };
+            mMap.setOnMarkerClickListener(markerClickListener);
+
+            final GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
+                @Override
+                public void onPolylineClick(Polyline polyline) {
+                    polyline.setWidth(10);
+                }
+            };
+            mMap.setOnPolylineClickListener(polylineClickListener);
+
+            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    //clear polylines
+                    for(Polyline polyline : currentPolylinesArrayList) {
+                        polyline.remove();
+                    }
+                }
+            };
+            mMap.setOnMapClickListener(mapClickListener);
+
+//            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
+//                @Override
+//                // CameraPosition is constantly updated when map moves...
+//                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
+//                public void onCameraChange(CameraPosition cameraPosition) {
+//                    if (cameraPosition.) {
+//                        for (Polyline polyline : currentPolylinesArrayList) {
+//                            polyline.remove();
+//                        }
+//                    }
+//                }
+//            };
+//            mMap.setOnCameraChangeListener(cameraChangeListener);
         }
+
     }
 }
+
 
