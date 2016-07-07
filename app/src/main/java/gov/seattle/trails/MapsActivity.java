@@ -37,8 +37,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
-import org.w3c.dom.Text;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -379,11 +377,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ParkEntity pe = parkEntityHashMap.get(pair.getKey());
                 // get center coordinate for park
                 LatLng parkCenterCoordinate = pe.getParkCenter();
+
                 // add park marker
                 Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
                         .position(parkCenterCoordinate)
-                        .title(pe.getPma_name())
-                        .snippet(pe.getTrailData()));
+                        .title(pe.getPma_name()));
                 // add marker to markerHashMap to reference in ClickListener
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
@@ -397,14 +395,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public View getInfoContents(Marker marker) {
+
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
+
                     //set text view formatter for info window contents
                     View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout,null);
                     marker = markerHashMap.get(marker.getId());
+
                     TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
                     markerTitleText.setText(marker.getTitle());
 
                     TextView markerInfoText = (TextView) markerView.findViewById(R.id.marker_info_text);
-                    markerInfoText.setText(marker.getSnippet());
+                    markerInfoText.setText(pe.getTrailData(), TextView.BufferType.SPANNABLE);
+
                     return markerView;
                 }
             });
