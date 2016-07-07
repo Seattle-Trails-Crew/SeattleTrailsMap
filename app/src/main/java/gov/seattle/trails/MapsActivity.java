@@ -22,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,6 +36,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
+
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -394,7 +397,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public View getInfoContents(Marker marker) {
-                    return null;
+                    //set text view formatter for info window contents
+                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout,null);
+                    marker = markerHashMap.get(marker.getId());
+                    TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
+                    markerTitleText.setText(marker.getTitle());
+
+                    TextView markerInfoText = (TextView) markerView.findViewById(R.id.marker_info_text);
+                    markerInfoText.setText(marker.getSnippet());
+                    return markerView;
                 }
             });
 
