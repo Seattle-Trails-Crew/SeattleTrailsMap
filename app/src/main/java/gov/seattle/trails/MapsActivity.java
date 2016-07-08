@@ -11,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -87,7 +88,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (isConnectedToInternet()) {
             new GetTrailData().execute();
         } else {
-            Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
+            //Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
+            AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+            builder.setMessage("Please enable internet access to download trail data!")
+                    .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    startActivity(new Intent(Settings.ACTION_SETTINGS));
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // user cancelled dialog
+                }
+            });
+            builder.create().show();
         }
 
         setupToolbar();
