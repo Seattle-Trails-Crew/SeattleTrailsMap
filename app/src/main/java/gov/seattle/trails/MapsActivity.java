@@ -3,10 +3,12 @@ package gov.seattle.trails;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -144,6 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setQueryHint(getString(R.string.search_hint));
+
         SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -313,6 +316,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
             //store each group of trails in a single park entity
+
 
             if (trailEntities != null) {
 
