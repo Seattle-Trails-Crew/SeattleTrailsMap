@@ -183,6 +183,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         askForLocationPermissionIfNeeded();
     }
 
+
     /*
      check to very permissions for location data
     */
@@ -272,6 +273,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
     }
+
+
 
 
     private class GetTrailData extends AsyncTask<String, Void, String> {
@@ -428,6 +431,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // retrieve all trail objects for the selected park
                     // zoom to park
                     if (marker.equals(selectedMarker)) {
+
+                        // clear existing polylines
+                        for(Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
 
@@ -453,16 +462,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
             mMap.setOnPolylineClickListener(polylineClickListener);
 
-            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
-                @Override
-                public void onMapClick(LatLng latLng) {
-                    //clear polylines
-                    for(Polyline polyline : currentPolylinesArrayList) {
-                        polyline.remove();
-                    }
-                }
-            };
-            mMap.setOnMapClickListener(mapClickListener);
+            
+
+//            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
+//                @Override
+//                public void onMapClick(LatLng latLng) {
+//                    //clear polylines
+//                    for(Polyline polyline : currentPolylinesArrayList) {
+//                        polyline.remove();
+//                    }
+//                }
+//            };
+//            mMap.setOnMapClickListener(mapClickListener);
+
 
 //            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
 //                @Override
