@@ -311,7 +311,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-private class GetTrailData extends AsyncTask<String, Void, String> {
+    private class GetTrailData extends AsyncTask<String, Void, String> {
 
     StringBuilder jString = new StringBuilder();
     //TODO create onPreExecute() to load a progress bar of some sort
