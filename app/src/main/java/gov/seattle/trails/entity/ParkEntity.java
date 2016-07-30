@@ -80,17 +80,23 @@ public class ParkEntity {
                     .clickable(true)
                     .geodesic(true);
             switch (te.getSurface_ty().toLowerCase()) {
-                case "grass":trailLine.color(Color.rgb(10, 138,19));
+                case "grass":
+                    trailLine.color(Color.rgb(10, 138, 19));
                     break;
-                case "soil":trailLine.color(Color.rgb(10, 138,19));
+                case "soil":
+                    trailLine.color(Color.rgb(10, 138, 19));
                     break;
-                case "gravel":trailLine.color(Color.rgb(7, 103, 230));
+                case "gravel":
+                    trailLine.color(Color.rgb(7, 103, 230));
                     break;
-                case "bark":trailLine.color(Color.rgb(7, 103, 230));
+                case "bark":
+                    trailLine.color(Color.rgb(7, 103, 230));
                     break;
-                case "stairs":trailLine.color(Color.rgb(166, 36, 36));
+                case "stairs":
+                    trailLine.color(Color.rgb(166, 36, 36));
                     break;
-                case "steps":trailLine.color(Color.rgb(166, 36, 36));
+                case "steps":
+                    trailLine.color(Color.rgb(166, 36, 36));
                     break;
                 // if none of these statements trail will be on boardwalk, asphalt, bridge, or concrete
                 // and are assumed to be easy to traverse... so will default to Color.GREEN
@@ -102,61 +108,71 @@ public class ParkEntity {
 
     public SpannableStringBuilder getTrailData() {
         ArrayList<String> trailFeaturesList = new ArrayList<>();
-        for(TrailEntity te : parkTrails) {
+        for (TrailEntity te : parkTrails) {
             String trailFeature = te.getSurface_ty().toLowerCase();
-            if(trailFeaturesList.isEmpty() || !trailFeaturesList.contains(trailFeature)) {
+            if (trailFeaturesList.isEmpty() || !trailFeaturesList.contains(trailFeature)) {
                 trailFeaturesList.add(trailFeature);
             }
         }
         SpannableStringBuilder builder = new SpannableStringBuilder();
-        for(String trailFeature : trailFeaturesList) {
+        for (String trailFeature : trailFeaturesList) {
             switch (trailFeature.toLowerCase()) {
-                case "grass": String grassString = "Grass ";
+                case "grass":
+                    String grassString = "Grass ";
                     SpannableString grass = new SpannableString(grassString);
                     grass.setSpan(new ForegroundColorSpan(Color.rgb(10, 138, 19)), 0, grassString.length(), 0);
                     builder.append(grass);
                     break;
-                case "soil": String soilString = "Soil ";
+                case "soil":
+                    String soilString = "Soil ";
                     SpannableString soil = new SpannableString(soilString);
                     soil.setSpan(new ForegroundColorSpan(Color.rgb(10, 138, 19)), 0, soilString.length(), 0);
                     builder.append(soil);
                     break;
-                case "gravel": String gravelString = "Gravel ";
+                case "gravel":
+                    String gravelString = "Gravel ";
                     SpannableString gravel = new SpannableString(gravelString);
                     gravel.setSpan(new ForegroundColorSpan(Color.rgb(7, 103, 230)), 0, gravelString.length(), 0);
                     builder.append(gravel);
                     break;
-                case "bark": String barkString = "Bark ";
+                case "bark":
+                    String barkString = "Bark ";
                     SpannableString bark = new SpannableString(barkString);
                     bark.setSpan(new ForegroundColorSpan(Color.rgb(7, 103, 230)), 0, barkString.length(), 0);
                     builder.append(bark);
                     break;
-                case "stairs": String stairsString = "Stairs ";
+                case "stairs":
+                    String stairsString = "Stairs ";
                     SpannableString stairs = new SpannableString(stairsString);
                     stairs.setSpan(new ForegroundColorSpan(Color.rgb(166, 36, 36)), 0, stairsString.length(), 0);
                     builder.append(stairs);
                     break;
-                case "steps": String stepsString = "Steps ";
+                case "steps":
+                    String stepsString = "Steps ";
                     SpannableString steps = new SpannableString(stepsString);
                     steps.setSpan(new ForegroundColorSpan(Color.rgb(166, 36, 36)), 0, stepsString.length(), 0);
                     builder.append(steps);
                     break;
-                case "asphalt": String asphaltString = "Asphalt ";
+                case "asphalt":
+                    String asphaltString = "Asphalt ";
                     SpannableString asphalt = new SpannableString(asphaltString);
                     asphalt.setSpan(new ForegroundColorSpan(Color.rgb(34, 199, 45)), 0, asphaltString.length(), 0);
                     builder.append(asphalt);
                     break;
-                case "boardwalk": String boardwalkString = "Boardwalk ";
+                case "boardwalk":
+                    String boardwalkString = "Boardwalk ";
                     SpannableString boardwalk = new SpannableString(boardwalkString);
                     boardwalk.setSpan(new ForegroundColorSpan(Color.rgb(34, 199, 45)), 0, boardwalkString.length(), 0);
                     builder.append(boardwalk);
                     break;
-                case "bridge": String bridgeString = "Bridge ";
+                case "bridge":
+                    String bridgeString = "Bridge ";
                     SpannableString bridge = new SpannableString(bridgeString);
                     bridge.setSpan(new ForegroundColorSpan(Color.rgb(34, 199, 45)), 0, bridgeString.length(), 0);
                     builder.append(bridge);
                     break;
-                case "concrete": String concreteString = "Concrete ";
+                case "concrete":
+                    String concreteString = "Concrete ";
                     SpannableString concrete = new SpannableString(concreteString);
                     concrete.setSpan(new ForegroundColorSpan(Color.rgb(34, 199, 45)), 0, concreteString.length(), 0);
                     builder.append(concrete);
@@ -165,7 +181,7 @@ public class ParkEntity {
         }
 
         //return SpannableStringBuilder object instead of a string
-         return builder;
+        return builder;
     }
 
     public void setBounds(ArrayList<LatLng> coordinates) {

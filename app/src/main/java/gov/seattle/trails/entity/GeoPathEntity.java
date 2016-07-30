@@ -15,14 +15,14 @@ public class GeoPathEntity implements Serializable {
     public void setCoordinates(List<float[]> coordinates) {
 
         this.coordinates = coordinates;
-  }
+    }
 
     public List<float[]> getCoordinates() {
 
         return this.coordinates;
     }
 }
-    //Json Example
+//Json Example
     /*
     "the_geom": {
       "type": "LineString",
