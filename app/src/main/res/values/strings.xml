@@ -3,7 +3,7 @@
     <string name="title_activity_maps">Seattle Trails</string>
     <string name="search_hint">Search...</string>
     <string name="no_internet_dialog">
-        You must be connected to the Internet to download data...</string>
+        You must be connected to the Internet to download data&#8230;</string>
     <string name="go_to_settings">Open Settings</string>
     <string name="ignore_message">Ignore</string>
 </resources>
