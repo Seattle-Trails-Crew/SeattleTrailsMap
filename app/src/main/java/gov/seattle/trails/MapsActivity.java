@@ -112,7 +112,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return isConnected;
     }
 
-
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
         setSupportActionBar(this.toolbar);
@@ -392,7 +391,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
                     } else {
-                        //add remaining trails to the same pmaid
+                        //add remaining trails to the same pmaid 
                         ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
                         pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
@@ -435,7 +434,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
 
                     //set text view formatter for info window contents
-                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout, null);
+                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout,null);
                     marker = markerHashMap.get(marker.getId());
 
                     TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
@@ -496,6 +495,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setOnPolylineClickListener(polylineClickListener);
 
         }
+
     }
 }
 
