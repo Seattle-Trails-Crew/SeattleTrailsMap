@@ -102,13 +102,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
         if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-            Toast toast = Toast.makeText(getApplicationContext(), "connected", Toast.LENGTH_LONG);
-            toast.show();
             isConnected = true;
         } else {
             // display error and offer to open settings
-            Toast toast = Toast.makeText(getApplicationContext(), "not connected to network", Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.no_network_connection, Toast.LENGTH_LONG);
             toast.show();
+            // return false (default boolean value)
         }
         return isConnected;
     }
@@ -295,8 +294,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Would you like to enabled location services?").setPositiveButton("Yes", dialogClickListener)
-                    .setNegativeButton("No", dialogClickListener).show();
+            builder.setMessage(R.string.location_services).setPositiveButton(R.string.yes_string, dialogClickListener)
+                    .setNegativeButton(R.string.no_string, dialogClickListener).show();
         }
     }
 
@@ -313,217 +312,191 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private class GetTrailData extends AsyncTask<String, Void, String> {
 
-    StringBuilder jString = new StringBuilder();
-    //TODO create onPreExecute() to load a progress bar of some sort
+        StringBuilder jString = new StringBuilder();
+        //TODO create onPreExecute() to load a progress bar of some sort
 
-    @Override
-    protected String doInBackground(String... url) {
+        @Override
+        protected String doInBackground(String... url) {
 
-        //connect and download data
-        try {
-            URL serviceUrl = new URL(TheApplication.ServiceUrl);
-            HttpsURLConnection con = (HttpsURLConnection) serviceUrl.openConnection();
-            InputStream ins = con.getInputStream();
-            InputStreamReader isr = new InputStreamReader(ins);
-            BufferedReader in = new BufferedReader(isr);
-            String inputLine;
+            //connect and download data
+            try {
+                URL serviceUrl = new URL(TheApplication.ServiceUrl);
+                HttpsURLConnection con = (HttpsURLConnection) serviceUrl.openConnection();
+                InputStream ins = con.getInputStream();
+                InputStreamReader isr = new InputStreamReader(ins);
+                BufferedReader in = new BufferedReader(isr);
+                String inputLine;
 
-            while ((inputLine = in.readLine()) != null) {
-                jString.append(inputLine);
+                while ((inputLine = in.readLine()) != null) {
+                    jString.append(inputLine);
+                }
+
+                //display JSON string in logcat for verification that download is successful
+                Log.i("JSON", jString.toString());
+
+                //close connection
+                in.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            //display JSON string in logcat for verification that download is successful
-            Log.i("JSON", jString.toString());
-
-            //close connection
-            in.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
+            return jString.toString();
         }
-        return jString.toString();
-    }
 
-    //draw polylines and drop markers
-    protected void onPostExecute(String dataString) {
-        Gson gson = new Gson();
+        //draw polylines and drop markers
+        protected void onPostExecute(String dataString) {
+            Gson gson = new Gson();
 
-        TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
-        //store each group of trails in a single park entity
+            TrailEntity[] trailEntities = gson.fromJson(dataString, TrailEntity[].class);
+            //store each group of trails in a single park entity
 
-        if (trailEntities != null) {
+            if (trailEntities != null) {
 
-            //each trail represents just one of a group of trails for each park
-            for (TrailEntity trail : trailEntities) {
+                //each trail represents just one of a group of trails for each park
+                for (TrailEntity trail : trailEntities) {
 
-                // add park to ArrayList<ParkEntity> if it hasn't already been created (based on pmaid value)
-                // create int value of pmaid for hashCode
+                    // add park to ArrayList<ParkEntity> if it hasn't already been created (based on pmaid value)
+                    // create int value of pmaid for hashCode
 
-                //coordinatePointsList stores each point of this trail
-                ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
+                    //coordinatePointsList stores each point of this trail
+                    ArrayList<LatLng> coordinatePointsList = new ArrayList<>();
 
-                //get all points to draw polyline for this trail
-                GeoPathEntity geoData = trail.getThe_geom();
+                    //get all points to draw polyline for this trail
+                    GeoPathEntity geoData = trail.getThe_geom();
 
-                if (geoData != null) {
-                    List<float[]> coordinateArray = geoData.getCoordinates();
+                    if (geoData != null) {
+                        List<float[]> coordinateArray = geoData.getCoordinates();
 
-                    //array to hold each coordinate
-                    float[] point;
+                        //array to hold each coordinate
+                        float[] point;
 
-                    for (int i = 0; i < coordinateArray.size(); i++) {
-                        //assign latitude and longitude values from array list of arrays
-                        point = coordinateArray.get(i);
-                        if (point != null && point.length == 2) {
-                            //socrata trailEntities downloads with longitude at index 0
-                            float lat = point[1];
-                            float lng = point[0];
-                            LatLng pointCoordinate = new LatLng(lat, lng);
-                            coordinatePointsList.add(pointCoordinate);
+                        for (int i = 0; i < coordinateArray.size(); i++) {
+                            //assign latitude and longitude values from array list of arrays
+                            point = coordinateArray.get(i);
+                            if (point != null && point.length == 2) {
+                                //socrata trailEntities downloads with longitude at index 0
+                                float lat = point[1];
+                                float lng = point[0];
+                                LatLng pointCoordinate = new LatLng(lat, lng);
+                                coordinatePointsList.add(pointCoordinate);
+                            }
                         }
                     }
+                    trail.setCoordinatePointList(coordinatePointsList);
+
+                    //use this instance of ParkEntity to create a new ParkEntity object in HashMap
+                    if (parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
+                        ParkEntity pe = new ParkEntity(trail.getPmaid(), trail.getPma_name());
+                        parkEntityHashMap.put(trail.getPmaid(), pe);
+                        //add first trail that occurs for this pmaid
+                        pe.addParkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
+                    } else {
+                        //add remaining trails to the same pmaid
+                        ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
+                        pe.addParkTrails(trail);
+                        pe.setBounds(coordinatePointsList);
+                    }
+
+
                 }
-                trail.setCoordinatePointList(coordinatePointsList);
-
-                //use this instance of ParkEntity to create a new ParkEntity object in HashMap
-                if (parkEntityHashMap.isEmpty() || !parkEntityHashMap.containsKey(trail.getPmaid())) {
-                    ParkEntity pe = new ParkEntity(trail.getPmaid(), trail.getPma_name());
-                    parkEntityHashMap.put(trail.getPmaid(), pe);
-                    //add first trail that occurs for this pmaid
-                    pe.addParkTrails(trail);
-                    pe.setBounds(coordinatePointsList);
-                } else {
-                    //add remaining trails to the same pmaid
-                    ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
-                    pe.addParkTrails(trail);
-                    pe.setBounds(coordinatePointsList);
-                }
-
-
-            }
-        }// end trails loop
+            }// end trails loop
 
             /*
                 Iterate through HashMap to place markers at the center of each park or set of trails
              */
-        Iterator it = parkEntityHashMap.entrySet().iterator();
-        while (it.hasNext()) {
-            // get next key/value mapping in parkEntityHashMap
-            Map.Entry pair = (Map.Entry) it.next();
-            // get that instance of ParkEntity using key (park name)
-            ParkEntity pe = parkEntityHashMap.get(pair.getKey());
-            // get center coordinate for park
-            LatLng parkCenterCoordinate = pe.getParkCenter();
+            Iterator it = parkEntityHashMap.entrySet().iterator();
+            while (it.hasNext()) {
+                // get next key/value mapping in parkEntityHashMap
+                Map.Entry pair = (Map.Entry) it.next();
+                // get that instance of ParkEntity using key (park name)
+                ParkEntity pe = parkEntityHashMap.get(pair.getKey());
+                // get center coordinate for park
+                LatLng parkCenterCoordinate = pe.getParkCenter();
 
-            // add park marker
-            Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
-                    .position(parkCenterCoordinate)
-                    .title(pe.getPma_name()));
-            // add marker to markerHashMap to reference in ClickListener
-            markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
-            markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
+                // add park marker
+                Marker parkCenterMarker = mMap.addMarker(new MarkerOptions()
+                        .position(parkCenterCoordinate)
+                        .title(pe.getPma_name()));
+                // add marker to markerHashMap to reference in ClickListener
+                markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
+                markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
+            }
+
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                public View getInfoWindow(Marker marker) {
+                    return null;
+                }
+
+                @Override
+                public View getInfoContents(Marker marker) {
+
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
+
+                    //set text view formatter for info window contents
+                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout, null);
+                    marker = markerHashMap.get(marker.getId());
+
+                    TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
+                    markerTitleText.setText(marker.getTitle());
+
+                    TextView markerInfoText = (TextView) markerView.findViewById(R.id.marker_info_text);
+                    markerInfoText.setText(pe.getTrailData(), TextView.BufferType.SPANNABLE);
+
+                    return markerView;
+                }
+            });
+
+            GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Marker selectedMarker = markerHashMap.get(marker.getId());
+                    // get ParkEntity object by getting pmaid value for selected pin using pin's id value
+                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
+
+                    if (!currentPolylinesArrayList.isEmpty()) {
+                        for (Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+                    }
+
+                    // retrieve all trail objects for the selected park
+                    // zoom to park
+                    if (marker.equals(selectedMarker)) {
+
+                        // clear existing polylines
+                        for (Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
+                        selectedMarker.showInfoWindow();
+
+                        for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
+                            Polyline trailLine = mMap.addPolyline(polylineOptions);
+                            polyLineHashMap.put(trailLine.hashCode(), trailLine);
+                            // add polyline to global array list to use in OnMapClickListener
+                            // to clear lines when map is clicked
+                            currentPolylinesArrayList.add(trailLine);
+                        }
+
+                    }
+                    return true;
+                }
+            };
+            mMap.setOnMarkerClickListener(markerClickListener);
+
+            final GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
+                @Override
+                public void onPolylineClick(Polyline polyline) {
+                    polyline.setWidth(10);
+                }
+            };
+            mMap.setOnPolylineClickListener(polylineClickListener);
+
         }
-
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-            public View getInfoWindow(Marker marker) {
-                return null;
-            }
-
-            @Override
-            public View getInfoContents(Marker marker) {
-
-                ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
-
-                //set text view formatter for info window contents
-                View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout, null);
-                marker = markerHashMap.get(marker.getId());
-
-                TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
-                markerTitleText.setText(marker.getTitle());
-
-                TextView markerInfoText = (TextView) markerView.findViewById(R.id.marker_info_text);
-                markerInfoText.setText(pe.getTrailData(), TextView.BufferType.SPANNABLE);
-
-                return markerView;
-            }
-        });
-
-        GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                Marker selectedMarker = markerHashMap.get(marker.getId());
-                // get ParkEntity object by getting pmaid value for selected pin using pin's id value
-                ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
-
-                if (!currentPolylinesArrayList.isEmpty()) {
-                    for (Polyline polyline : currentPolylinesArrayList) {
-                        polyline.remove();
-                    }
-                }
-
-                // retrieve all trail objects for the selected park
-                // zoom to park
-                if (marker.equals(selectedMarker)) {
-
-                    // clear existing polylines
-                    for (Polyline polyline : currentPolylinesArrayList) {
-                        polyline.remove();
-                    }
-
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
-                    selectedMarker.showInfoWindow();
-
-                    for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
-                        Polyline trailLine = mMap.addPolyline(polylineOptions);
-                        polyLineHashMap.put(trailLine.hashCode(), trailLine);
-                        // add polyline to global array list to use in OnMapClickListener
-                        // to clear lines when map is clicked
-                        currentPolylinesArrayList.add(trailLine);
-                    }
-
-                }
-                return true;
-            }
-        };
-        mMap.setOnMarkerClickListener(markerClickListener);
-
-        final GoogleMap.OnPolylineClickListener polylineClickListener = new GoogleMap.OnPolylineClickListener() {
-            @Override
-            public void onPolylineClick(Polyline polyline) {
-                polyline.setWidth(10);
-            }
-        };
-        mMap.setOnPolylineClickListener(polylineClickListener);
-
-
-//            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
-//                @Override
-//                public void onMapClick(LatLng latLng) {
-//                    //clear polylines
-//                    for(Polyline polyline : currentPolylinesArrayList) {
-//                        polyline.remove();
-//                    }
-//                }
-//            };
-//            mMap.setOnMapClickListener(mapClickListener);
-
-
-//            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
-//                @Override
-//                // CameraPosition is constantly updated when map moves...
-//                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
-//                public void onCameraChange(CameraPosition cameraPosition) {
-//                    if (cameraPosition.) {
-//                        for (Polyline polyline : currentPolylinesArrayList) {
-//                            polyline.remove();
-//                        }
-//                    }
-//                }
-//            };
-//            mMap.setOnCameraChangeListener(cameraChangeListener);
     }
-}
 }
 
 

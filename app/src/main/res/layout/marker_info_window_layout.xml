@@ -18,12 +18,28 @@
         android:text="Surface Types:"
         android:paddingLeft="5dp"/>
 
-    <TextView
-        android:id="@+id/marker_info_text"
+    <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="5dp"
-        android:paddingBottom="5dp"
-        android:textSize="15dp"/>
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="20dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/soft_surface_color_dot" />
+
+            <TextView
+                android:id="@+id/marker_info_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5dp"
+                android:paddingBottom="5dp"
+                android:textSize="15dp"/>
+
+        </TableRow>
+    </TableLayout>
 
 </LinearLayout>

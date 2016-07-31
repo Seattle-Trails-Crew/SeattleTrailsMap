@@ -4,6 +4,10 @@
     <string name="search_hint">Search...</string>
     <string name="no_internet_dialog">
         You must be connected to the Internet to download data&#8230;</string>
+    <string name="no_network_connection">No network connection</string>
     <string name="go_to_settings">Open Settings</string>
     <string name="ignore_message">Ignore</string>
+    <string name="location_services">Would you like to enabled location services?</string>
+    <string name="yes_string">Yes</string>
+    <string name="no_string">No</string>
 </resources>

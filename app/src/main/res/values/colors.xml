@@ -5,4 +5,14 @@
     <color name="colorAccent">#FF4081</color>
     <color name="info_window_title_color">#195C11</color>
 
+
+    <!--
+        color values to use for Polylines
+        color blind users will be able to discern the difference
+    -->
+    <color name="smooth_surfaces">#0067a7</color>
+    <color name="steep_surfaces">#bd1e24</color>
+    <color name="rough_surfaces">#f6c700</color>
+    <color name="soft_surfaces">#007256</color>
+
 </resources>
