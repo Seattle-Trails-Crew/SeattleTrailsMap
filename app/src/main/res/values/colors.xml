@@ -3,8 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="info_window_title_color">#195C11</color>
 
+    <color name="info_window_title_color">#195C11</color>
+    <color name="floating_action_button_color">#59a5fa</color>
 
     <!--
         color values to use for Polylines

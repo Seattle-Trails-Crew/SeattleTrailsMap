@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -71,6 +72,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
     private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
+
+    private Uri selectedMarkerData;
 
     //instantiate app with Map Fragment
     @Override
@@ -139,6 +142,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
                     case R.id.navigation_fab:
                         //TODO: set intent to open maps app with direction from current location
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, selectedMarkerData);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }
                         break;
                 }
             }
@@ -187,7 +195,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onResume() {
         super.onResume();
 
-        if (isConnectedToInternet() == false) {
+        if (!isConnectedToInternet()) {
             Toast toast = Toast.makeText(getApplicationContext(), R.string.no_internet_toast, Toast.LENGTH_LONG);
             toast.show();
         } else if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
@@ -377,7 +385,7 @@ private class GetTrailData extends AsyncTask<String, Void, String> {
                         //assign latitude and longitude values from array list of arrays
                         point = coordinateArray.get(i);
                         if (point != null && point.length == 2) {
-                            //socrata trailEntities downloads with longitude at index 0
+                            // Socrata trailEntities downloads with longitude at index 0
                             float lat = point[1];
                             float lng = point[0];
                             LatLng pointCoordinate = new LatLng(lat, lng);
@@ -482,6 +490,8 @@ private class GetTrailData extends AsyncTask<String, Void, String> {
                         // to clear lines when map is clicked
                         currentPolylinesArrayList.add(trailLine);
                     }
+
+                    selectedMarkerData = Uri.parse("geo:" + selectedMarker.getPosition() + "?q=" + selectedMarker.getTitle());
 
                 }
                 return true;
