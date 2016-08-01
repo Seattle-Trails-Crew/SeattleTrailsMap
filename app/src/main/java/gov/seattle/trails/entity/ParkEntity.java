@@ -24,8 +24,11 @@ public class ParkEntity {
     private LatLngBounds.Builder builder = new LatLngBounds.Builder();
     private LatLngBounds bounds;
 
+
+
     public ParkEntity() {
         //default constructor
+
     }
 
     public ParkEntity(String pmaid, String pma_name) {
