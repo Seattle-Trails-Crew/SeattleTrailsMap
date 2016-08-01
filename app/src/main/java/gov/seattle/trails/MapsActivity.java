@@ -44,7 +44,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -188,13 +187,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onResume() {
         super.onResume();
 
-        if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
-            new GetTrailData().execute();
-        } else {
+        if (isConnectedToInternet() == false) {
             Toast toast = Toast.makeText(getApplicationContext(), R.string.no_internet_toast, Toast.LENGTH_LONG);
             toast.show();
+        } else if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+            new GetTrailData().execute();
         }
-
     }
 
     /**
