@@ -44,7 +44,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -86,6 +85,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         setupToolbar();
         setupButtons();
+
+        if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+            new GetTrailData().execute();
+        } else {
+            networkConnectionDialog();
+        }
     }
 
     public void networkConnectionDialog() {
@@ -102,14 +107,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
         if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-            Toast toast = Toast.makeText(getApplicationContext(), "connected", Toast.LENGTH_LONG);
-            toast.show();
             isConnected = true;
-        } else {
-            // display error and offer to open settings
-            Toast toast = Toast.makeText(getApplicationContext(), "not connected to network", Toast.LENGTH_LONG);
-            toast.show();
         }
+
         return isConnected;
     }
 
@@ -180,17 +180,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStart() {
         super.onStart();
 
-        if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
-            new GetTrailData().execute();
-        } else {
-            networkConnectionDialog();
-        }
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
+        if (isConnectedToInternet() == false) {
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.no_internet_toast, Toast.LENGTH_LONG);
+            toast.show();
+        } else if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+            new GetTrailData().execute();
+        }
     }
 
     /**
@@ -268,7 +270,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
-                return;
+
             }
             // other 'case' lines to check for other
             // permissions this app might request
@@ -406,10 +408,9 @@ private class GetTrailData extends AsyncTask<String, Void, String> {
             /*
                 Iterate through HashMap to place markers at the center of each park or set of trails
              */
-        Iterator it = parkEntityHashMap.entrySet().iterator();
-        while (it.hasNext()) {
+        for (Object o : parkEntityHashMap.entrySet()) {
             // get next key/value mapping in parkEntityHashMap
-            Map.Entry pair = (Map.Entry) it.next();
+            Map.Entry pair = (Map.Entry) o;
             // get that instance of ParkEntity using key (park name)
             ParkEntity pe = parkEntityHashMap.get(pair.getKey());
             // get center coordinate for park
