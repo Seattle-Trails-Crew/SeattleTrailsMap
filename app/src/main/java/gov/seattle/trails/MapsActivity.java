@@ -2,6 +2,7 @@ package gov.seattle.trails;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -31,7 +33,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -46,7 +47,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -61,20 +61,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private GoogleMap mMap;
-
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
-
     private Toolbar toolbar;
-
     private FloatingActionButton satelliteButton;
     private FloatingActionButton navigationButton;
-
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
     private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
-    private CameraPosition currentCameraPosition;
+    private Uri selectedMarkerData;
 
     //instantiate app with Map Fragment
     @Override
@@ -86,21 +82,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        if (isConnectedToInternet()) {
-            new GetTrailData().execute();
-        } else {
-            Toast.makeText(this, R.string.check_internet_message, Toast.LENGTH_LONG);
-        }
 
         setupToolbar();
         setupButtons();
+
+        if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+            new GetTrailData().execute();
+        } else {
+            networkConnectionDialog();
+        }
+    }
+
+    public void networkConnectionDialog() {
+        DialogFragment settingsDialog = NoInternetDialogFragment.newInstance(R.string.no_internet_dialog);
+        settingsDialog.show(getFragmentManager(), "message");
     }
 
     public boolean isConnectedToInternet() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+
+        boolean isConnected = false;
+
+        ConnectivityManager cm =
+                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
+            isConnected = true;
+        }
+
+        return isConnected;
     }
+
 
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
@@ -127,6 +139,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
                     case R.id.navigation_fab:
                         //TODO: set intent to open maps app with direction from current location
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, selectedMarkerData);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }
                         break;
                 }
             }
@@ -165,6 +182,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (!isConnectedToInternet()) {
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.no_internet_toast, Toast.LENGTH_LONG);
+            toast.show();
+        } else if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+            new GetTrailData().execute();
+        }
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -185,6 +221,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         askForLocationPermissionIfNeeded();
     }
+
 
     /*
      check to very permissions for location data
@@ -239,7 +276,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
-                return;
+
             }
             // other 'case' lines to check for other
             // permissions this app might request
@@ -274,6 +311,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void takeUserToLocationSettings() {
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
 
@@ -342,7 +384,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
                             if (point != null && point.length == 2) {
-                                //socrata trailEntities downloads with longitude at index 0
+                                // Socrata trailEntities downloads with longitude at index 0
                                 float lat = point[1];
                                 float lng = point[0];
                                 LatLng pointCoordinate = new LatLng(lat, lng);
@@ -360,7 +402,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
                     } else {
-                        //add remaining trails to the same pmaid 
+                        //add remaining trails to the same pmaid
                         ParkEntity pe = parkEntityHashMap.get(trail.getPmaid());
                         pe.addParkTrails(trail);
                         pe.setBounds(coordinatePointsList);
@@ -373,10 +415,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             /*
                 Iterate through HashMap to place markers at the center of each park or set of trails
              */
-            Iterator it = parkEntityHashMap.entrySet().iterator();
-            while (it.hasNext()) {
+            for (Object o : parkEntityHashMap.entrySet()) {
                 // get next key/value mapping in parkEntityHashMap
-                Map.Entry pair = (Map.Entry) it.next();
+                Map.Entry pair = (Map.Entry) o;
                 // get that instance of ParkEntity using key (park name)
                 ParkEntity pe = parkEntityHashMap.get(pair.getKey());
                 // get center coordinate for park
@@ -403,7 +444,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(marker.getId()));
 
                     //set text view formatter for info window contents
-                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout,null);
+                    View markerView = getLayoutInflater().inflate(R.layout.marker_info_window_layout, null);
                     marker = markerHashMap.get(marker.getId());
 
                     TextView markerTitleText = (TextView) markerView.findViewById(R.id.marker_label);
@@ -423,8 +464,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // get ParkEntity object by getting pmaid value for selected pin using pin's id value
                     ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
 
-                    if(!currentPolylinesArrayList.isEmpty()) {
-                        for(Polyline polyline : currentPolylinesArrayList) {
+                    if (!currentPolylinesArrayList.isEmpty()) {
+                        for (Polyline polyline : currentPolylinesArrayList) {
                             polyline.remove();
                         }
                     }
@@ -432,6 +473,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // retrieve all trail objects for the selected park
                     // zoom to park
                     if (marker.equals(selectedMarker)) {
+
+                        // clear existing polylines
+                        for (Polyline polyline : currentPolylinesArrayList) {
+                            polyline.remove();
+                        }
+
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
                         selectedMarker.showInfoWindow();
 
@@ -442,7 +489,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // to clear lines when map is clicked
                             currentPolylinesArrayList.add(trailLine);
                         }
-                        currentCameraPosition = mMap.getCameraPosition();
+
+                        selectedMarkerData = Uri.parse("geo:" + selectedMarker.getPosition() + "?q=" + selectedMarker.getTitle());
+
                     }
                     return true;
                 }
@@ -456,33 +505,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             };
             mMap.setOnPolylineClickListener(polylineClickListener);
-
-            GoogleMap.OnMapClickListener mapClickListener = new GoogleMap.OnMapClickListener() {
-                @Override
-                public void onMapClick(LatLng latLng) {
-                    //clear polylines
-                    for(Polyline polyline : currentPolylinesArrayList) {
-                        polyline.remove();
-                    }
-                }
-            };
-            mMap.setOnMapClickListener(mapClickListener);
-
-//            GoogleMap.OnCameraChangeListener cameraChangeListener = new GoogleMap.OnCameraChangeListener() {
-//                @Override
-//                // CameraPosition is constantly updated when map moves...
-//                // Polylines clear when zoom out, but if redrawn they don't stay... why?!
-//                public void onCameraChange(CameraPosition cameraPosition) {
-//                    if (cameraPosition.) {
-//                        for (Polyline polyline : currentPolylinesArrayList) {
-//                            polyline.remove();
-//                        }
-//                    }
-//                }
-//            };
-//            mMap.setOnCameraChangeListener(cameraChangeListener);
         }
-
     }
 }
 
