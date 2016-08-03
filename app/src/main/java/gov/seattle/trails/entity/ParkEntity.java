@@ -28,7 +28,6 @@ public class ParkEntity {
 
     public ParkEntity() {
         //default constructor
-
     }
 
     public ParkEntity(String pmaid, String pma_name) {
@@ -42,19 +41,9 @@ public class ParkEntity {
         return pma_name;
     }
 
-    public void setPma_name(String pma_name) {
-
-        this.pma_name = pma_name;
-    }
-
     public String getPmaid() {
 
         return pmaid;
-    }
-
-    public void setPmaid(String pmaid) {
-
-        this.pmaid = pmaid;
     }
 
     public void addParkTrails(TrailEntity trails) {
@@ -62,14 +51,10 @@ public class ParkEntity {
         parkTrails.add(trails);
     }
 
-    public ArrayList<TrailEntity> getParkTrails() {
-        return parkTrails;
-    }
-
-    /*
-    drawParkTrails gets each trail's coordinates and adds them as a separate entity in trailCoordinatePoints
-    todo: add marker for each trail, set data to be displayed in info window of each marker
-    todo: color-code trails based on terrain and difficulty
+    /**
+     * drawParkTrails iterates through each trail entity and draws a polyline that is
+     * color-coded based on its surface type
+     * @return
      */
     public ArrayList<PolylineOptions> drawParkTrails() {
         ArrayList<LatLng> trailCoordinatePoints;
@@ -109,6 +94,12 @@ public class ParkEntity {
         return trailLines;
     }
 
+    /**
+     * getTrailData iterates through all of the trails in the park to extract the
+     * trail feature strings. SpannableStringBuilder allows each part of the string to be color-coded
+     * to match the color of the trail's polyline
+     * @return
+     */
     public SpannableStringBuilder getTrailData() {
         ArrayList<String> trailFeaturesList = new ArrayList<>();
         for (TrailEntity te : parkTrails) {
@@ -117,6 +108,8 @@ public class ParkEntity {
                 trailFeaturesList.add(trailFeature);
             }
         }
+
+        // TODO: Fix string so like colors are grouped together
         SpannableStringBuilder builder = new SpannableStringBuilder();
         for (String trailFeature : trailFeaturesList) {
             switch (trailFeature.toLowerCase()) {
@@ -183,10 +176,16 @@ public class ParkEntity {
             }
         }
 
-        //return SpannableStringBuilder object instead of a string
         return builder;
     }
 
+    /**
+     * setBounds iterates through all of the trail coordinates to get the outside bounds of the
+     * park's trails. These bounds may be outside of the park's perimeter as some of the trails
+     * will extend outside of the park, or the park's shape does not allow a simple center point
+     * calculation
+     * @param coordinates
+     */
     public void setBounds(ArrayList<LatLng> coordinates) {
         //set bounds for all trails in park
         for (LatLng singleCoordinate : coordinates) {
@@ -198,8 +197,13 @@ public class ParkEntity {
         return bounds;
     }
 
+    /**
+     * getParkCenter uses bounds of all latlng coordinates of the park's trails
+     * to calculate a point to drop a marker on the map. This marker does not reflect the
+     * center of the park as the trails are not always contained within the park's perimeter.
+     * @return
+     */
     public LatLng getParkCenter() {
-        //get center of bounds for all trails in park
         bounds = builder.build();
         LatLng centerCoordinate = bounds.getCenter();
         return centerCoordinate;

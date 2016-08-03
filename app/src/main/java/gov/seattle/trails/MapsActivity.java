@@ -59,20 +59,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private GoogleMap mMap;
-
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
-
     private Toolbar toolbar;
-
     private FloatingActionButton satelliteButton;
     private FloatingActionButton navigationButton;
-
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
     private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
-
     private Uri selectedMarkerData;
 
     //instantiate app with Map Fragment
