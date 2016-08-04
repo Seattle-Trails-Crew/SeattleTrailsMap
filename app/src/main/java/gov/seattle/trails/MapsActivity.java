@@ -175,8 +175,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public boolean onQueryTextSubmit(String query) {
+
                 System.out.println("on query submit: " + query);
-                if(parkNamesArrayList.contains(query)) {
+                if (parkNamesArrayList.contains(query.toLowerCase()))
+                {
                     searchView.clearFocus();
                     Toast toast = Toast.makeText(getApplicationContext(), query + " found", Toast.LENGTH_LONG);
                     toast.show();
@@ -185,14 +187,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (marker != null) {
                         goToMarker(marker);
                     }
+                } else
 
-                }
-                else {
+                {
                     searchView.clearFocus();
                     Toast toast = Toast.makeText(getApplicationContext(), query + " not found", Toast.LENGTH_LONG);
                     toast.show();
                 }
-                return true;
+
+                return false;
             }
         };
         searchView.setOnQueryTextListener(textChangeListener);
@@ -242,7 +245,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     /*
-     check to very permissions for location data
+     check to verify permissions for location data
     */
     public void askForLocationPermissionIfNeeded() {
 
@@ -371,6 +374,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         //draw polylines and drop markers
+
+        /**
+         *
+         * @param dataString
+         */
         protected void onPostExecute(String dataString) {
             Gson gson = new Gson();
 
@@ -449,8 +457,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
                 // parkNameMarkerIDHashMap used in search menu to search through park names and select a marker
-                parkNamesArrayList.add(pe.getPma_name());
-                parkNameMarkerIDHashMap.put(pe.getPma_name(), parkCenterMarker.getId());
+                parkNamesArrayList.add(pe.getPma_name().toLowerCase());
+                parkNameMarkerIDHashMap.put(pe.getPma_name().toLowerCase(), parkCenterMarker.getId());
                 markerIDMarkerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
             }
 
