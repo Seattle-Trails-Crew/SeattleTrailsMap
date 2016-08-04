@@ -4,12 +4,10 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.SearchManager;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -62,14 +60,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
-    private Toolbar toolbar;
+    //private Toolbar toolbar;
     private FloatingActionButton satelliteButton;
     private FloatingActionButton navigationButton;
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
-    private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
+    private HashMap<String, Marker> markerIDMarkerHashMap = new HashMap<>();
+    private HashMap<String, String> parkNameMarkerIDHashMap = new HashMap<>();
     private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
+    private ArrayList<String> parkNamesArrayList = new ArrayList<>();
     private Uri selectedMarkerData;
 
     //instantiate app with Map Fragment
@@ -115,8 +115,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public void setupToolbar() {
-        this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
-        setSupportActionBar(this.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
+        setSupportActionBar(toolbar);
     }
 
     public void setupButtons() {
@@ -138,12 +138,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         break;
                     case R.id.navigation_fab:
-                        //TODO: set intent to open maps app with direction from current location
+                        // open map app to the location of the marker currently selected
                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, selectedMarkerData);
                         mapIntent.setPackage("com.google.android.apps.maps");
                         if (mapIntent.resolveActivity(getPackageManager()) != null) {
                             startActivity(mapIntent);
                         }
+                        //TODO: do not execute intent if user has no marker selected
+
                         break;
                 }
             }
@@ -160,7 +162,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //TODO: Set menu items to change Map View Type and select some specific trail features
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        final SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setQueryHint(getString(R.string.search_hint));
 
@@ -174,6 +176,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onQueryTextSubmit(String query) {
                 System.out.println("on query submit: " + query);
+                if(parkNamesArrayList.contains(query)) {
+                    searchView.clearFocus();
+                    Toast toast = Toast.makeText(getApplicationContext(), query + " found", Toast.LENGTH_LONG);
+                    toast.show();
+                    String markerID = parkNameMarkerIDHashMap.get(query);
+                    Marker marker = markerIDMarkerHashMap.get(markerID);
+                    if (marker != null) {
+                        goToMarker(marker);
+                    }
+
+                }
+                else {
+                    searchView.clearFocus();
+                    Toast toast = Toast.makeText(getApplicationContext(), query + " not found", Toast.LENGTH_LONG);
+                    toast.show();
+                }
                 return true;
             }
         };
@@ -418,7 +436,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             for (Object o : parkEntityHashMap.entrySet()) {
                 // get next key/value mapping in parkEntityHashMap
                 Map.Entry pair = (Map.Entry) o;
-                // get that instance of ParkEntity using key (park name)
+                // get that instance of ParkEntity using parkEntityHashMap key (park name)
                 ParkEntity pe = parkEntityHashMap.get(pair.getKey());
                 // get center coordinate for park
                 LatLng parkCenterCoordinate = pe.getParkCenter();
@@ -430,6 +448,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // add marker to markerHashMap to reference in ClickListener
                 markerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
                 markerIdPmaidHashMap.put(parkCenterMarker.getId(), pe.getPmaid());
+                // parkNameMarkerIDHashMap used in search menu to search through park names and select a marker
+                parkNamesArrayList.add(pe.getPma_name());
+                parkNameMarkerIDHashMap.put(pe.getPma_name(), parkCenterMarker.getId());
+                markerIDMarkerHashMap.put(parkCenterMarker.getId(), parkCenterMarker);
             }
 
             mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
@@ -462,37 +484,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public boolean onMarkerClick(Marker marker) {
                     Marker selectedMarker = markerHashMap.get(marker.getId());
                     // get ParkEntity object by getting pmaid value for selected pin using pin's id value
-                    ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
-
-                    if (!currentPolylinesArrayList.isEmpty()) {
-                        for (Polyline polyline : currentPolylinesArrayList) {
-                            polyline.remove();
-                        }
-                    }
-
-                    // retrieve all trail objects for the selected park
-                    // zoom to park
-                    if (marker.equals(selectedMarker)) {
-
-                        // clear existing polylines
-                        for (Polyline polyline : currentPolylinesArrayList) {
-                            polyline.remove();
-                        }
-
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
-                        selectedMarker.showInfoWindow();
-
-                        for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
-                            Polyline trailLine = mMap.addPolyline(polylineOptions);
-                            polyLineHashMap.put(trailLine.hashCode(), trailLine);
-                            // add polyline to global array list to use in OnMapClickListener
-                            // to clear lines when map is clicked
-                            currentPolylinesArrayList.add(trailLine);
-                        }
-
-                        selectedMarkerData = Uri.parse("geo:" + selectedMarker.getPosition() + "?q=" + selectedMarker.getTitle());
-
-                    }
+                    goToMarker(selectedMarker);
                     return true;
                 }
             };
@@ -505,6 +497,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             };
             mMap.setOnPolylineClickListener(polylineClickListener);
+        }
+    }
+
+    public void goToMarker(Marker marker) {
+        Marker selectedMarker = marker;
+        ParkEntity pe = parkEntityHashMap.get(markerIdPmaidHashMap.get(selectedMarker.getId()));
+
+        if (!currentPolylinesArrayList.isEmpty()) {
+            for (Polyline polyline : currentPolylinesArrayList) {
+                polyline.remove();
+            }
+        }
+
+        // retrieve all trail objects for the selected park
+        // zoom to park
+        if (marker.equals(selectedMarker)) {
+
+            // clear existing polylines
+            for (Polyline polyline : currentPolylinesArrayList) {
+                polyline.remove();
+            }
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(pe.getBounds(), 50));
+            selectedMarker.showInfoWindow();
+
+            for (PolylineOptions polylineOptions : pe.drawParkTrails()) {
+                Polyline trailLine = mMap.addPolyline(polylineOptions);
+                //polyLineHashMap.put(trailLine.hashCode(), trailLine);
+                // add polyline to global array list to use in OnMapClickListener
+                // to clear lines when map is clicked
+                currentPolylinesArrayList.add(trailLine);
+            }
+
+            selectedMarkerData = Uri.parse("geo:" + selectedMarker.getPosition() + "?q=" + selectedMarker.getTitle());
+
         }
     }
 }
