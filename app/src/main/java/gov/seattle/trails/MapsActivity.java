@@ -20,7 +20,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.SearchView;
@@ -156,40 +155,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.toolbar_menu, menu);
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.toolbar_menu, menu); //inflates report and filter items and search bar
+        // the toolbar_menu search_item uses actionbar.xmlfor layout
+
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
 
         //TODO: Set menu items to change Map View Type and select some specific trail features
 
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        final SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         final SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setQueryHint(getString(R.string.search_hint));
 
-        SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener() {
+        final SearchView.OnQueryTextListener textChangeListener = new SearchView.OnQueryTextListener() {
+
             @Override
             public boolean onQueryTextChange(String newText) {
                 System.out.println("on text change text: " + newText);
-                return true;
+                ArrayList<String> searchResults = new ArrayList<>();
+                for (String p : parkNamesArrayList) {
+                    if (p.toLowerCase().contains(newText.toLowerCase())) {
+                        searchResults.add(p);
+                        Log.i("test", p);
+                        //find a way to display this list!
+                    }
+
+                }
+                return false;
             }
 
             @Override
             public boolean onQueryTextSubmit(String query) {
 
                 System.out.println("on query submit: " + query);
-                if (parkNamesArrayList.contains(query.toLowerCase()))
-                {
+                if (parkNamesArrayList.contains(query.toLowerCase())) {
                     searchView.clearFocus();
                     Toast toast = Toast.makeText(getApplicationContext(), query + " found", Toast.LENGTH_LONG);
                     toast.show();
-                    String markerID = parkNameMarkerIDHashMap.get(query);
+                    String markerID = parkNameMarkerIDHashMap.get(query.toLowerCase());
                     Marker marker = markerIDMarkerHashMap.get(markerID);
                     if (marker != null) {
                         goToMarker(marker);
                     }
-                } else
-
-                {
+                } else {
                     searchView.clearFocus();
                     Toast toast = Toast.makeText(getApplicationContext(), query + " not found", Toast.LENGTH_LONG);
                     toast.show();
@@ -376,7 +385,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //draw polylines and drop markers
 
         /**
-         *
          * @param dataString
          */
         protected void onPostExecute(String dataString) {

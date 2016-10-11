@@ -8,4 +8,6 @@
     <string name="go_to_settings">Open Settings</string>
     <string name="ignore_message">Ignore</string>
     <string name="google_maps_key">AIzaSyDqzym4L5ktNxO4W34sLaMz2D3Y-YJCXUM</string>
+    <string name="report_string">Report</string>
+    <string name="color_key_string">Color Key</string>
 </resources>
