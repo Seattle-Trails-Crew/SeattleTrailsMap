@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -25,7 +24,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -59,16 +57,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private GoogleMap mMap;
+
     private final int PERMISSION_REQUEST_LOCATION_SERVICE = 100;
+
     private Toolbar toolbar;
+
     private FloatingActionButton satelliteButton;
     private FloatingActionButton navigationButton;
+
     private HashMap<String, ParkEntity> parkEntityHashMap = new HashMap<>();
     private HashMap<String, Marker> markerHashMap = new HashMap<>();
     private HashMap<String, String> markerIdPmaidHashMap = new HashMap<>();
     private HashMap<Integer, Polyline> polyLineHashMap = new HashMap<>();
     private ArrayList<Polyline> currentPolylinesArrayList = new ArrayList<>();
-    private Uri selectedMarkerData;
 
     //instantiate app with Map Fragment
     @Override
@@ -80,37 +81,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
+        // set up UI app tools
         setupToolbar();
         setupButtons();
 
-        if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
+        // check network connection and download data if possible
+        ConnectivityManager cm = (ConnectivityManager)
+                getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
             new GetTrailData().execute();
         } else {
-            networkConnectionDialog();
+            DialogFragment settingsDialog = NoInternetDialogFragment.newInstance(R.string.no_internet_dialog);
+            settingsDialog.show(getFragmentManager(), "message");
         }
     }
-
-    public void networkConnectionDialog() {
-        DialogFragment settingsDialog = NoInternetDialogFragment.newInstance(R.string.no_internet_dialog);
-        settingsDialog.show(getFragmentManager(), "message");
-    }
-
-    public boolean isConnectedToInternet() {
-
-        boolean isConnected = false;
-
-        ConnectivityManager cm =
-                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-            isConnected = true;
-        }
-
-        return isConnected;
-    }
-
 
     public void setupToolbar() {
         this.toolbar = (Toolbar) findViewById(R.id.maps_toolbar);
@@ -137,11 +122,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
                     case R.id.navigation_fab:
                         //TODO: set intent to open maps app with direction from current location
-                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, selectedMarkerData);
-                        mapIntent.setPackage("com.google.android.apps.maps");
-                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                            startActivity(mapIntent);
-                        }
                         break;
                 }
             }
@@ -167,7 +147,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 System.out.println("on text change text: " + newText);
                 return true;
             }
-
             @Override
             public boolean onQueryTextSubmit(String query) {
                 System.out.println("on query submit: " + query);
@@ -175,27 +154,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
         searchView.setOnQueryTextListener(textChangeListener);
-
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        if (!isConnectedToInternet()) {
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.no_internet_toast, Toast.LENGTH_LONG);
-            toast.show();
-        } else if (isConnectedToInternet() && parkEntityHashMap.isEmpty()) {
-            new GetTrailData().execute();
-        }
     }
 
     /**
@@ -213,7 +182,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //initialize map view to greater Seattle area
         LatLng seattle = new LatLng(47.6062, -122.3321);
-        //mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
+
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seattle, 11.2f));
 
         askForLocationPermissionIfNeeded();
@@ -380,7 +349,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             //assign latitude and longitude values from array list of arrays
                             point = coordinateArray.get(i);
                             if (point != null && point.length == 2) {
-                                // Socrata trailEntities downloads with longitude at index 0
+                                //socrata trailEntities downloads with longitude at index 0
                                 float lat = point[1];
                                 float lng = point[0];
                                 LatLng pointCoordinate = new LatLng(lat, lng);
@@ -486,8 +455,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             currentPolylinesArrayList.add(trailLine);
                         }
 
-                        selectedMarkerData = Uri.parse("geo:" + selectedMarker.getPosition() + "?q=" + selectedMarker.getTitle());
-
                     }
                     return true;
                 }
@@ -501,6 +468,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             };
             mMap.setOnPolylineClickListener(polylineClickListener);
+
         }
     }
 }

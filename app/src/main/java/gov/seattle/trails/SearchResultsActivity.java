@@ -4,8 +4,11 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.ListView;
 
 public class SearchResultsActivity extends AppCompatActivity {
+
+    ListView searchResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +24,7 @@ public class SearchResultsActivity extends AppCompatActivity {
      */
     @Override
     protected void onNewIntent(Intent intent) {
+
         handleIntent(intent);
     }
 
